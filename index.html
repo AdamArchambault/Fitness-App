@@ -184,12 +184,6 @@
   /* workouts */
   .wkactive{background:var(--card);border:1px solid var(--line2);border-left:3px solid var(--mint);border-radius:var(--r);padding:18px;margin-bottom:14px;}
   .wktimer{font-size:42px;font-weight:850;letter-spacing:-.02em;text-align:center;font-variant-numeric:tabular-nums;}
-  .wk-sticky-bar{position:sticky;top:calc(var(--safe-t) + 62px);z-index:25;max-width:480px;margin:0 auto -8px;padding:0 16px 8px;pointer-events:none;}
-  .wk-sticky-inner{pointer-events:auto;background:rgba(14,13,12,.88);backdrop-filter:blur(16px);border:1px solid var(--line2);border-radius:16px;padding:8px 14px;display:flex;align-items:center;gap:12px;}
-  .wk-sticky-timer{font-size:28px;font-weight:850;font-variant-numeric:tabular-nums;font-family:'Bricolage Grotesque',sans-serif;color:var(--mint);flex:none;}
-  .wk-sticky-btns{display:flex;gap:6px;flex-wrap:wrap;}
-  .wk-sticky-btns button{border:1px solid var(--line2);background:var(--card2);color:var(--ink);border-radius:9px;padding:5px 10px;font-size:12px;font-weight:700;}
-  .wk-sticky-name{font-size:12px;font-weight:700;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;}
   .exhead{display:flex;align-items:center;justify-content:space-between;margin:4px 0 2px;}
   .exhead .n{font-weight:800;font-size:16px;}
   .setrow{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px solid var(--line);font-size:14px;}
@@ -239,19 +233,7 @@
     <section class="page on" id="p-food"></section>
     <section class="page" id="p-work"></section>
     <section class="page" id="p-tools"></section>
-    <section class="page" id="p-bot">
-      <div class="ttl">Pep Bot</div>
-      <div class="card" style="padding:14px 16px">
-        <div class="rowflex"><div class="dot" style="background:rgba(46,196,182,.12);border-color:var(--mint)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--mint)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 3v5M9 13.5h.01M15 13.5h.01"/></svg></div>
-        <div class="grow"><div class="t" style="font-weight:650;font-size:15px">Pep Bot</div><div class="d" style="font-size:12.5px;color:var(--ink2)">Educational assistant · not medical advice</div></div></div>
-      </div>
-      <div class="chips" id="botChips"></div>
-      <div class="chat" id="chat"></div>
-      <div class="composer">
-        <input id="chatIn" placeholder="Ask about peptides, GLP-1s…" onkeydown="if(event.key==='Enter')sendChat()"/>
-        <button class="send" onclick="sendChat()">↑</button>
-      </div>
-    </section>
+    <section class="page" id="p-sleep"></section>
   </div>
 
   <nav class="tabs">
@@ -262,8 +244,8 @@
     <button class="tab fab" onclick="openSheet('pick')"><span class="plus">+</span></button>
     <button class="tab" data-tab="work" onclick="go('work')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9v6M6 8v8M18 8v8M21 9v6M6 12h12"/></svg>Workout</button>
-    <button class="tab" data-tab="bot" onclick="go('bot')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 3v4M9 13h.01M15 13h.01"/></svg>Bot</button>
+    <button class="tab" data-tab="sleep" onclick="go('sleep')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A8 8 0 1111.2 3a6 6 0 109.8 9.8z"/></svg>Sleep</button>
   </nav>
 </div>
 
@@ -365,7 +347,7 @@ function defaultMeal(){const h=new Date().getHours();return h<11?'breakfast':h<1
 /* nav */
 const titles={food:['Diary','Meals, hydration & daily tracking'],inv:['Protocol','Compounds & GLP-1s on hand'],
   work:['Workouts','Log lifts, sets, reps & rest'],
-  tools:['Tools','Calculators & trackers'],bot:['Pep Bot','Educational · not medical advice']};
+  tools:['Tools','Calculators & trackers'],sleep:['Sleep','Track your sleep hours & quality']};
 function go(t){
   if(t!=='food'&&t!=='barcode')stopBarcode();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
@@ -374,7 +356,7 @@ function go(t){
   document.getElementById('navTitle').childNodes[0].nodeValue=titles[t][0]+' ';
   document.getElementById('navSub').textContent=titles[t][1];
   window.scrollTo(0,0);
-  if(t==='inv')renderInv();if(t==='food')renderFood();if(t==='work')renderWork();if(t==='tools')renderTools();
+  if(t==='inv')renderInv();if(t==='food')renderFood();if(t==='work')renderWork();if(t==='tools')renderTools();if(t==='sleep')renderSleep();
 }
 function refreshProTag(){}
 
@@ -498,6 +480,15 @@ function renderFood(){
   const lastW=DB.weights[DB.weights.length-1];
   let html=`<div style="display:flex;justify-content:flex-end;padding:4px 4px 6px">
     <button onclick="openSheet('goals')" style="background:transparent;border:0;color:var(--mint);font-weight:700;font-size:14px">Macros</button></div>`;
+  html+=`<div class="card">
+    <div class="rowflex"><div class="ring" style="--p:${wp}"><i>${wp}%</i></div><div class="grow">
+      <div class="t" style="font-weight:700;font-size:15px">Hydration</div>
+      <div class="muted">${water} / ${waterGoal} oz today</div>
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(8)">+8 oz</button>
+        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(16)">+16 oz</button>
+      </div></div></div>
+  </div>`;
   html+=`<div class="kcalcard">
     <div class="bigring" style="--p:${pct}"><i><b>${Math.abs(rem)}</b><span>${rem<0?'over':'remaining'}</span></i></div>
     <div class="kcalrow"><div class="col"><b>${g.cal}</b><span>Goal</span></div><div class="op">−</div>
@@ -520,15 +511,6 @@ function renderFood(){
   });
   html+=`<div class="disc">Tap a food entry to remove it. Barcode data from Open Food Facts.</div>`;
   html+=`<div class="ttl">Daily Trackers</div>`;
-  html+=`<div class="card">
-    <div class="rowflex"><div class="ring" style="--p:${wp}"><i>${wp}%</i></div><div class="grow">
-      <div class="t" style="font-weight:700;font-size:15px">Hydration</div>
-      <div class="muted">${water} / ${waterGoal} oz today</div>
-      <div style="margin-top:8px;display:flex;gap:8px">
-        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(8)">+8 oz</button>
-        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(16)">+16 oz</button>
-      </div></div></div>
-  </div>`;
   html+=`<div class="two">
     <div class="card tap" onclick="openSheet('weight')"><div class="muted">Weight</div>
       <div style="font-size:26px;font-weight:850;margin-top:2px">${lastW?dispWeight(lastW.kg)+' <small style=color:var(--ink2)>'+wUnit()+'</small>':'—'}</div>
@@ -597,28 +579,20 @@ const LIFTS=['Bench Press','Back Squat','Deadlift','Overhead Press','Barbell Row
 let restEnd=null,wkInterval=null;
 function startWkTimer(){if(!wkInterval)wkInterval=setInterval(tick,1000);}
 function tick(){
-  const el=document.querySelector('.restDisplayEx');
+  const el=document.getElementById('restDisplay');
   if(restEnd){const left=restEnd-Date.now();
-    if(left<=0){restEnd=null;
-      if(el){el.textContent='0:00';el.style.color='var(--ink3)';}
-      toast('Rest over 💪');if(navigator.vibrate)navigator.vibrate(400);}
-    else{if(el){el.textContent=fmtDur(left);el.style.color='var(--mint)';}}}
-  else{if(el){el.textContent='0:00';el.style.color='var(--ink3)';}}
+    if(left<=0){restEnd=null;if(el)el.textContent='0:00';toast('Rest over 💪');if(navigator.vibrate)navigator.vibrate(400);}
+    else{if(el)el.textContent=fmtDur(left);}}
 }
 function startRest(sec){restEnd=Date.now()+sec*1000;startWkTimer();tick();}
 function addRest(s){if(restEnd)restEnd+=s*1000;tick();}
-function skipRest(){restEnd=null;const el=document.querySelector('.restDisplayEx');if(el){el.textContent='0:00';el.style.color='var(--ink3)';}}
+function skipRest(){restEnd=null;const el=document.getElementById('restDisplay');if(el)el.textContent='0:00';}
 
 function startWorkout(name){DB.activeWorkout={start:Date.now(),name:name||('Workout '+(DB.workouts.length+1)),exercises:[]};save();startWkTimer();closeSheet();go('work');}
 function setWkName(val){if(DB.activeWorkout){DB.activeWorkout.name=val;save();}}
 function addExercise(name){if(!DB.activeWorkout)return;DB.activeWorkout.exercises.push({name:name||'Exercise',sets:[]});save();closeSheet();renderWork();}
-function saveSet(exIdx){const ex=DB.activeWorkout.exercises[exIdx];
-  const type=v('as_type')||'reps';
-  const rest=+v('as_rest')||0;
-  let setObj;
-  if(type==='time'){setObj={type:'time',seconds:+v('as_seconds')||30,rest};}
-  else{setObj={type:'reps',reps:+v('as_reps')||0,weight:+v('as_weight')||0,rest};}
-  ex.sets.push(setObj);save();const t=document.getElementById('as_timer');const startT=t?t.checked:true;closeSheet();renderWork();if(startT&&rest>0)startRest(rest);}
+function saveSet(exIdx){const ex=DB.activeWorkout.exercises[exIdx];const reps=+v('as_reps')||0,weight=+v('as_weight')||0,rest=+v('as_rest')||0;
+  ex.sets.push({reps,weight,rest});save();const t=document.getElementById('as_timer');const startT=t?t.checked:true;closeSheet();renderWork();if(startT&&rest>0)startRest(rest);}
 function delSet(exIdx,setIdx){DB.activeWorkout.exercises[exIdx].sets.splice(setIdx,1);save();renderWork();}
 function delExercise(exIdx){DB.activeWorkout.exercises.splice(exIdx,1);save();renderWork();}
 function finishWorkout(){const aw=DB.activeWorkout;if(!aw)return;
@@ -629,62 +603,35 @@ function wkVolume(w){let v=0;w.exercises.forEach(e=>e.sets.forEach(s=>v+=s.reps*
 function wkSets(w){return w.exercises.reduce((s,e)=>s+e.sets.length,0);}
 function fmtWkDur(sec){const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60);return h>0?`${h}h ${m}m`:`${m}m`;}
 
-function exMenuSheet(ei){const ex=DB.activeWorkout.exercises[ei];
-  return `<h2>${ex.name}</h2>
-  <button class="btn ghost" style="margin-top:14px" onclick="openRenameEx(${ei})">✏️ Rename exercise</button>
-  <button class="btn rose" style="margin-top:10px" onclick="confirmDelExercise(${ei})">🗑 Delete exercise</button>`;}
-function openRenameEx(ei){const ex=DB.activeWorkout.exercises[ei];
-  document.getElementById('sheetBody').innerHTML=`<h2>Rename exercise</h2>
-  <div class="field" style="margin-top:12px"><input id="ren_name" value="${ex.name}"></div>
-  <button class="btn" onclick="doRenameEx(${ei})">Save</button>
-  <button class="btn ghost" style="margin-top:10px" onclick="openSheet('exmenu',${ei})">Cancel</button>`;}
-function doRenameEx(ei){const val=document.getElementById('ren_name').value.trim();if(!val)return;
-  DB.activeWorkout.exercises[ei].name=val;save();closeSheet();renderWork();}
-function confirmDelExercise(ei){if(confirm('Delete this exercise and all its sets?')){DB.activeWorkout.exercises.splice(ei,1);save();closeSheet();renderWork();}}
-
 function renderWork(){
   let html='';
   if(DB.activeWorkout){
     const aw=DB.activeWorkout;
-    /* remove sticky bar */
-    const old=document.getElementById('wk-sticky-bar');if(old)old.remove();
-
-    /* workout header — name only */
-    html+=`<div class="wkactive" style="margin-top:8px">
+    html+=`<div class="wkactive">
       <div style="font-size:11px;font-weight:800;color:var(--mint);letter-spacing:.1em">● ACTIVE WORKOUT</div>
       <input value="${aw.name}" onchange="setWkName(this.value)" style="background:transparent;border:0;font-size:20px;font-weight:800;padding:6px 0;color:var(--ink)">
+      <div class="wktimer" id="restDisplay">${restEnd?fmtDur(Math.max(0,restEnd-Date.now())):'0:00'}</div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:6px 0 4px">
+        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="startRest(60)">60s</button>
+        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="startRest(90)">90s</button>
+        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="startRest(120)">2m</button>
+        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="startRest(180)">3m</button>
+        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="skipRest()">Reset</button>
+      </div>
     </div>`;
-
-    const lastIdx=aw.exercises.length-1;
     aw.exercises.forEach((ex,ei)=>{
-      const isLast=ei===lastIdx;
-      const timerVal=restEnd?fmtDur(Math.max(0,restEnd-Date.now())):'0:00';
-      const timerColor=restEnd?'var(--mint)':'var(--ink3)';
       html+=`<div class="card" style="padding:10px 16px 4px">
-        <div class="exhead"><span class="n">${ex.name}</span><button class="x" onclick="openSheet('exmenu',${ei})">⋯</button></div>`;
-      if(ex.sets.length){ex.sets.forEach((s,si)=>{
-        const label=s.type==='time'?`${s.seconds}s`:`${s.reps} reps`;
-        const weightStr=s.type==='time'?'':`<span style="color:var(--ink2)">${s.weight} ${wUnit()}</span>`;
-        html+=`<div class="setrow"><span class="sn">SET ${si+1}</span>
-        <span>${label}</span>${weightStr}
+        <div class="exhead"><span class="n">${ex.name}</span><button class="x" onclick="delExercise(${ei})">⋯</button></div>`;
+      if(ex.sets.length){ex.sets.forEach((s,si)=>{html+=`<div class="setrow"><span class="sn">SET ${si+1}</span>
+        <span>${s.reps} reps</span><span style="color:var(--ink2)">${s.weight} ${wUnit()}</span>
         <span style="color:var(--ink3)">· ${s.rest}s rest</span><button class="x" onclick="delSet(${ei},${si})">×</button></div>`;});}
       else html+=`<div class="muted" style="padding:6px 2px">No sets yet.</div>`;
-      /* timer row only on the most recent exercise */
-      if(isLast){
-        html+=`<div style="display:flex;align-items:center;gap:8px;padding:8px 2px 4px;border-top:1px solid var(--line);margin-top:6px">
-          <span class="restDisplayEx" style="font-size:20px;font-weight:850;font-variant-numeric:tabular-nums;font-family:'Bricolage Grotesque',sans-serif;color:${timerColor};min-width:52px">${timerVal}</span>
-          <button class="btn ghost sm" style="width:auto;padding:6px 11px;font-size:12px" onclick="startRest(60)">60s</button>
-          <button class="btn ghost sm" style="width:auto;padding:6px 11px;font-size:12px" onclick="startRest(90)">90s</button>
-          <button class="btn ghost sm" style="width:auto;padding:6px 11px;font-size:12px" onclick="startRest(120)">2m</button>
-          <button class="btn ghost sm" style="width:auto;padding:6px 11px;font-size:12px" onclick="skipRest()">↺</button>
-        </div>`;}
       html+=`<button class="addset" onclick="openSheet('addset',${ei})">+ Add set</button></div>`;
     });
     html+=`<button class="btn ghost" onclick="openSheet('addex')">+ Add exercise</button>
       <button class="btn" style="margin-top:10px" onclick="finishWorkout()">Finish workout</button>
       <button class="btn rose" style="margin-top:10px" onclick="cancelWorkout()">Discard</button>`;
   } else {
-    const old=document.getElementById('wk-sticky-bar');if(old)old.remove();
     html+=`<button class="btn" onclick="openSheet('startworkout')">＋ Start workout</button>`;
     html+=`<div class="ttl">History (${DB.workouts.length})</div>`;
     if(DB.workouts.length){
@@ -788,7 +735,6 @@ function sheetHTML(type,a,b){
   if(type==='startworkout')return startWorkoutSheet();
   if(type==='addex')return addExSheet();
   if(type==='addset')return addSetSheet(a);
-  if(type==='exmenu')return exMenuSheet(a);
   if(type==='wkdetail')return wkDetailSheet(a);
   if(type==='paywall')return paywallSheet();
   return '';
@@ -842,7 +788,38 @@ function saveWeight(){let val=parseFloat(v('wt_v'));if(!val)return;const kg=uImp
 function sleepSheet(){return `<h2>Log sleep</h2><div class="two" style="margin-top:12px">
   <div class="field"><label>Hours slept</label><input id="sl_h" type="number" inputmode="decimal" placeholder="7.5"></div>
   <div class="field"><label>Quality 1–5</label><input id="sl_q" type="number" min="1" max="5" placeholder="4"></div></div><button class="btn" onclick="saveSleep()">Save</button>`;}
-function saveSleep(){const h=parseFloat(v('sl_h'));if(!h)return;DB.sleep.push({date:todayKey(),hours:h,quality:parseFloat(v('sl_q'))||0});save();closeSheet();go('food');toast('Sleep saved');}
+function saveSleep(){const h=parseFloat(v('sl_h'));if(!h)return;DB.sleep.push({date:todayKey(),hours:h,quality:parseFloat(v('sl_q'))||0});save();closeSheet();go('sleep');toast('Sleep saved');}
+function renderSleep(){
+  const entries=[...DB.sleep].reverse();
+  const recent=DB.sleep.slice(-7);
+  const avgHours=recent.length?(recent.reduce((s,e)=>s+e.hours,0)/recent.length).toFixed(1):'—';
+  const withQ=recent.filter(e=>e.quality>0);
+  const avgQ=withQ.length?(withQ.reduce((s,e)=>s+e.quality,0)/withQ.length).toFixed(1):'—';
+  const totHrs=DB.sleep.reduce((s,e)=>s+e.hours,0).toFixed(0);
+  let html=`<div class="hero"><div class="stats">
+    <div class="stat"><b>${avgHours}</b><span>avg hrs <small>(7d)</small></span></div>
+    <div class="stat"><b>${avgQ}</b><span>avg quality</span></div>
+    <div class="stat"><b>${totHrs}</b><span>total hrs</span></div>
+  </div></div>
+  <button class="btn" onclick="openSheet('sleep')" style="margin-bottom:14px">+ Log sleep</button>
+  <div class="ttl">Sleep history</div>`;
+  if(entries.length){
+    html+=`<div class="card">`;
+    html+=entries.slice(0,50).map(e=>{
+      const stars=e.quality?'★'.repeat(e.quality)+'☆'.repeat(5-e.quality):'';
+      const color=e.hours>=7?'var(--mint)':e.hours>=6?'var(--amber)':'var(--rose)';
+      const label=e.hours>=7?'Good':e.hours>=6?'Fair':'Low';
+      return `<div class="li"><div class="dot">🌙</div>
+        <div class="grow"><div class="t">${e.hours} hrs${stars?' · <span style="color:var(--amber)">'+stars+'</span>':''}</div>
+        <div class="d">${e.date}${e.quality?' · Quality '+e.quality+'/5':''}</div></div>
+        <div class="r" style="color:${color}">${label}</div></div>`;
+    }).join('');
+    html+=`</div>`;
+  } else {
+    html+=`<div class="empty">No sleep logged yet.<br>Tap the button above to start tracking.</div>`;
+  }
+  const el=document.getElementById('p-sleep');if(el)el.innerHTML=html;
+}
 
 function foodSheet(meal){const opts=MEAL_KEYS.map(k=>`<option value="${k}" ${k===meal?'selected':''}>${MEAL_LBL[k]}</option>`).join('');
   return `<h2>Add food</h2>
@@ -981,32 +958,15 @@ function addExSheet(){return `<h2>Add exercise</h2>
   <label>Common lifts</label>
   <div class="chips" style="flex-wrap:wrap;overflow:visible">${LIFTS.map(l=>`<button class="chip" onclick="addExercise('${l}')">${l}</button>`).join('')}</div>
   <button class="btn" style="margin-top:10px" onclick="addExercise(document.getElementById('ex_name').value)">Add</button>`;}
-function addSetSheet(exIdx){const ex=DB.activeWorkout.exercises[exIdx];const last=ex.sets[ex.sets.length-1]||{type:'reps',reps:8,seconds:30,weight:0,rest:90};
-  const isTime=(last.type==='time');
+function addSetSheet(exIdx){const ex=DB.activeWorkout.exercises[exIdx];const last=ex.sets[ex.sets.length-1]||{reps:8,weight:0,rest:90};
   return `<h2>Add set — ${ex.name}</h2>
-  <div style="margin-top:12px">
-  <div class="field"><label>Type</label>
-    <select id="as_type" onchange="toggleSetType()">
-      <option value="reps" ${!isTime?'selected':''}>Reps</option>
-      <option value="time" ${isTime?'selected':''}>Time</option>
-    </select>
-  </div>
-  <div id="as_reps_row" ${isTime?'style="display:none"':''}>
-    <div class="two">
-      <div class="field"><label>Reps</label><input id="as_reps" type="number" inputmode="numeric" value="${last.reps||8}"></div>
-      <div class="field"><label>Weight (${wUnit()})</label><input id="as_weight" type="number" inputmode="decimal" value="${last.weight||0}"></div>
-    </div>
-  </div>
-  <div id="as_time_row" ${!isTime?'style="display:none"':''}>
-    <div class="field"><label>Duration (seconds)</label><input id="as_seconds" type="number" inputmode="numeric" value="${last.seconds||30}"></div>
-  </div>
-  <div class="field"><label>Rest (s)</label><input id="as_rest" type="number" inputmode="numeric" value="${last.rest||90}"></div>
+  <div class="three" style="margin-top:12px">
+    <div class="field"><label>Reps</label><input id="as_reps" type="number" inputmode="numeric" value="${last.reps}"></div>
+    <div class="field"><label>Weight (${wUnit()})</label><input id="as_weight" type="number" inputmode="decimal" value="${last.weight}"></div>
+    <div class="field"><label>Rest (s)</label><input id="as_rest" type="number" inputmode="numeric" value="${last.rest}"></div>
   </div>
   <label style="display:flex;align-items:center;gap:8px;margin:4px 2px 14px"><input type="checkbox" id="as_timer" checked style="width:auto"> Start rest timer after adding</label>
   <button class="btn" onclick="saveSet(${exIdx})">Add set</button>`;}
-function toggleSetType(){const t=document.getElementById('as_type').value;
-  document.getElementById('as_reps_row').style.display=t==='time'?'none':'';
-  document.getElementById('as_time_row').style.display=t==='time'?'':'none';}
 function startWorkoutSheet(){const n='Workout '+(DB.workouts.length+1);
   return `<h2>Name your workout</h2>
   <div class="field" style="margin-top:12px"><input id="wk_name" value="${n}" placeholder="e.g. Push Day" onkeydown="if(event.key==='Enter')startWorkout(this.value)"></div>
@@ -1014,7 +974,7 @@ function startWorkoutSheet(){const n='Workout '+(DB.workouts.length+1);
 function wkDetailSheet(idx){const w=DB.workouts[idx];if(!w)return '<h2>Not found</h2>';
   let html=`<h2>${w.name}</h2><div class="muted" style="margin-bottom:12px">${new Date(w.date).toLocaleDateString()} · ${fmtWkDur(w.durationSec)} · ${w.exercises.length} exercises · ${wkSets(w)} sets</div>`;
   w.exercises.forEach(ex=>{html+=`<div class="card" style="padding:10px 16px"><div class="exhead"><span class="n">${ex.name}</span></div>`;
-    ex.sets.forEach((s,i)=>{const label=s.type==='time'?`${s.seconds}s`:`${s.reps} reps`;html+=`<div class="setrow"><span class="sn">SET ${i+1}</span><span>${label}</span><span style="color:var(--ink2)">${s.weight} ${wUnit()}</span></div>`;});
+    ex.sets.forEach((s,i)=>{html+=`<div class="setrow"><span class="sn">SET ${i+1}</span><span>${s.reps} reps</span><span style="color:var(--ink2)">${s.weight} ${wUnit()}</span></div>`;});
     html+=`</div>`;});
   html+=`<button class="btn rose" onclick="delWorkout(${idx})">Delete workout</button>`;return html;}
 function delWorkout(idx){if(confirm('Delete this workout?')){DB.workouts.splice(idx,1);save();closeSheet();renderWork();}}
@@ -1081,7 +1041,7 @@ function quick(t){document.getElementById('chatIn').value=t;sendChat();}
 /* toast + boot */
 let toastT;
 function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('on'),1900);}
-applyTheme();go('food');initBot();startWkTimer();
+applyTheme();go('food');startWkTimer();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){const on=document.querySelector('.page.on');if(on&&on.id==='p-food')renderFood();if(on&&on.id==='p-work')renderWork();}});
 </script>
 </body>
