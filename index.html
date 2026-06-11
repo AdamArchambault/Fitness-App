@@ -222,8 +222,8 @@
     <button class="tab fab" onclick="openSheet('pick')"><span class="plus">+</span></button>
     <button class="tab" data-tab="inv" onclick="go('inv')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21l-4-4 10-10 4 4-10 10zM13 5l6 6M16 2l2 2"/></svg>Protocol</button>
-    <button class="tab" data-tab="body" onclick="go('body')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 100 6 3 3 0 000-6zM6 8h12l1 13H5L6 8z"/></svg>Body</button>
+    <button class="tab" data-tab="work" onclick="go('work')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9v6M6 8v8M18 8v8M21 9v6M6 12h12"/></svg>Workout</button>
   </nav>
 </div>
 
@@ -323,7 +323,7 @@ const titles={
   food:['Food','Calories, macros & meals'],
   inv:['Protocol','Compounds, doses & tools'],
   work:['Workout','Log lifts, sets & rest'],
-  body:['Body','Weight, sleep & vitals']};
+  body:['Body','Weight & sleep history']};
 let bodyTab='weight';
 function go(t){
   if(t!=='food'&&t!=='barcode')stopBarcode();
@@ -336,7 +336,7 @@ function go(t){
   if(t==='home')renderHome();
   if(t==='food')renderFood();
   if(t==='inv')renderInv();
-  if(t==='work')renderWork();
+  if(t==='work'){renderWork();startWkTimer();}
   if(t==='body')renderBody();
 }
 
