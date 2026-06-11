@@ -116,16 +116,9 @@
   .grab{width:38px;height:5px;border-radius:3px;background:var(--line2);margin:8px auto 14px;}
   .sheet h2{font-size:21px;font-weight:800;margin:0 0 4px;}
 
-  .chat{display:flex;flex-direction:column;gap:10px;padding:4px 0 6px;}
-  .bub{max-width:82%;padding:11px 14px;border-radius:18px;font-size:15px;line-height:1.42;}
-  .bub.me{align-self:flex-end;background:var(--mint);color:var(--on-accent);border-bottom-right-radius:6px;}
-  .bub.ai{align-self:flex-start;background:var(--card);border:1px solid var(--line);border-bottom-left-radius:6px;}
   .chips{display:flex;gap:8px;overflow:auto;padding:2px 0 12px;scrollbar-width:none;}
   .chips::-webkit-scrollbar{display:none;}
   .chip{flex:none;border:1px solid var(--line2);background:var(--card);color:var(--ink2);border-radius:999px;padding:8px 13px;font-size:13px;font-weight:600;}
-  .composer{position:sticky;bottom:0;display:flex;gap:8px;padding:10px 0 4px;background:linear-gradient(transparent,var(--bg) 30%);}
-  .composer input{border-radius:22px;}
-  .send{flex:none;width:46px;height:46px;border-radius:50%;border:0;background:var(--mint);color:var(--on-accent);font-size:20px;}
 
   svg.body{width:100%;height:auto;display:block;}
   .site{fill:rgba(255,255,255,.06);stroke:var(--line2);stroke-width:1.5;transition:.15s;cursor:pointer;}
@@ -191,20 +184,6 @@
   .setrow .x{margin-left:auto;color:var(--ink3);font-size:18px;background:none;border:0;}
   .addset{background:transparent;border:0;color:var(--mint);font-weight:700;font-size:13.5px;padding:9px 2px;}
 
-  /* paywall */
-  .pw-hero{background:linear-gradient(160deg,var(--teal),var(--card2));border-radius:22px;padding:24px 18px;text-align:center;margin-bottom:14px;}
-  .pw-hero h2{font-size:26px;margin:8px 0 4px;}
-  .pw-hero p{color:rgba(255,255,255,.82);font-size:13.5px;margin:0;}
-  .pw-feat{display:flex;align-items:flex-start;gap:11px;padding:8px 2px;font-size:14.5px;line-height:1.35;}
-  .pw-feat .ic{color:var(--mint);font-weight:800;flex:none;margin-top:1px;}
-  .pw-price{display:flex;gap:10px;margin:18px 0 14px;}
-  .pw-opt{flex:1;border:2px solid var(--line2);border-radius:16px;padding:16px 12px;text-align:center;position:relative;}
-  .pw-opt.on{border-color:var(--mint);background:rgba(46,196,182,.07);}
-  .pw-opt .save{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--mint);color:var(--on-accent);font-size:10px;font-weight:800;padding:2px 8px;border-radius:8px;white-space:nowrap;}
-  .pw-opt b{display:block;font-size:18px;}
-  .pw-opt .per{font-size:12px;color:var(--ink2);}
-  .pw-opt .eq{font-size:11px;color:var(--ink3);margin-top:2px;}
-
   video.scan{width:100%;border-radius:14px;background:#000;aspect-ratio:4/3;object-fit:cover;}
 
   .toast{position:fixed;left:50%;bottom:calc(var(--tab-h) + 16px);transform:translateX(-50%) translateY(20px);background:var(--ink);color:#10120a;font-weight:700;font-size:14px;padding:11px 18px;border-radius:14px;z-index:90;opacity:0;transition:.3s;pointer-events:none;max-width:90%;text-align:center;}
@@ -228,24 +207,23 @@
   </div>
 
   <div class="pages">
-    <section class="page" id="p-home"></section>
+    <section class="page on" id="p-home"></section>
+    <section class="page" id="p-food"></section>
     <section class="page" id="p-inv"></section>
-    <section class="page on" id="p-food"></section>
     <section class="page" id="p-work"></section>
-    <section class="page" id="p-tools"></section>
-    <section class="page" id="p-sleep"></section>
+    <section class="page" id="p-body"></section>
   </div>
 
   <nav class="tabs">
-    <button class="tab on" data-tab="food" onclick="go('food')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6M9 16h4"/></svg>Diary</button>
-    <button class="tab" data-tab="inv" onclick="go('inv')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M4 9h16M9 4v16"/></svg>Protocol</button>
+    <button class="tab on" data-tab="home" onclick="go('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12L12 3l9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg>Today</button>
+    <button class="tab" data-tab="food" onclick="go('food')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v8a3 3 0 006 0V3M9 3v18M16 3c-1.5 0-2 3-2 6s.5 4 2 4v8"/></svg>Food</button>
     <button class="tab fab" onclick="openSheet('pick')"><span class="plus">+</span></button>
-    <button class="tab" data-tab="work" onclick="go('work')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9v6M6 8v8M18 8v8M21 9v6M6 12h12"/></svg>Workout</button>
-    <button class="tab" data-tab="sleep" onclick="go('sleep')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A8 8 0 1111.2 3a6 6 0 109.8 9.8z"/></svg>Sleep</button>
+    <button class="tab" data-tab="inv" onclick="go('inv')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21l-4-4 10-10 4 4-10 10zM13 5l6 6M16 2l2 2"/></svg>Protocol</button>
+    <button class="tab" data-tab="body" onclick="go('body')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 100 6 3 3 0 000-6zM6 8h12l1 13H5L6 8z"/></svg>Body</button>
   </nav>
 </div>
 
@@ -278,11 +256,6 @@ function ic(n,sz,c){const z=sz||22;const P={
   bot:'<rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 3v5M9 13.5h.01M15 13.5h.01"/>',
   cal:'<rect x="4" y="5" width="16" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M4 10h16"/>'};
   return `<svg viewBox="0 0 24 24" fill="none" stroke="${c||'currentColor'}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:${z}px;height:${z}px;display:block">${P[n]||''}</svg>`;}
-
-/* EVERYTHING ON: local build unlocks all Premium features */
-const LOCAL_UNLOCK=true;
-function isPro(){return LOCAL_UNLOCK||!!DB.pro;}
-function requirePro(){if(isPro())return true;openSheet('paywall');return false;}
 
 /* state + migration */
 let DB=store.get('pepai',null);
@@ -345,9 +318,13 @@ function mealCal(day,k){return Math.round(getDayMeals(day)[k].reduce((s,e)=>s+e.
 function defaultMeal(){const h=new Date().getHours();return h<11?'breakfast':h<16?'lunch':h<21?'dinner':'snacks';}
 
 /* nav */
-const titles={food:['Diary','Meals, hydration & daily tracking'],inv:['Protocol','Compounds & GLP-1s on hand'],
-  work:['Workouts','Log lifts, sets, reps & rest'],
-  tools:['Tools','Calculators & trackers'],sleep:['Sleep','Track your sleep hours & quality']};
+const titles={
+  home:['Today','Your daily overview'],
+  food:['Food','Calories, macros & meals'],
+  inv:['Protocol','Compounds, doses & tools'],
+  work:['Workout','Log lifts, sets & rest'],
+  body:['Body','Weight, sleep & vitals']};
+let bodyTab='weight';
 function go(t){
   if(t!=='food'&&t!=='barcode')stopBarcode();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
@@ -356,59 +333,27 @@ function go(t){
   document.getElementById('navTitle').childNodes[0].nodeValue=titles[t][0]+' ';
   document.getElementById('navSub').textContent=titles[t][1];
   window.scrollTo(0,0);
-  if(t==='inv')renderInv();if(t==='food')renderFood();if(t==='work')renderWork();if(t==='tools')renderTools();if(t==='sleep')renderSleep();
+  if(t==='home')renderHome();
+  if(t==='food')renderFood();
+  if(t==='inv')renderInv();
+  if(t==='work')renderWork();
+  if(t==='body')renderBody();
 }
-function refreshProTag(){}
 
 /* HOME */
 function renderHome(){
   const water=DB.water[todayKey()]||0,wp=Math.min(100,Math.round(water/waterGoal*100));
   const lastW=DB.weights[DB.weights.length-1];
+  const lastSleep=DB.sleep[DB.sleep.length-1];
   const todayDoses=DB.doses.filter(d=>d.date.slice(0,10)===todayKey());
   const tot=dayTotals(todayKey()),rem=DB.nutritionGoals.cal-tot.cal;
   const lastWk=DB.workouts[DB.workouts.length-1];
 
-  let html=`
-  <div class="hero">
-    <div class="stats">
-      <div class="stat"><b>${streak()}</b><span>day streak 🔥</span></div>
-      <div class="stat"><b>${todayDoses.length}</b><span>doses today</span></div>
-      <div class="stat"><b>${tot.cal}</b><span>kcal eaten</span></div>
-    </div>
-  </div>
-
-  <div class="card tap" onclick="go('food')">
-    <div class="rowflex"><div class="grow">
-      <div class="t" style="font-weight:700;font-size:15px">Nutrition</div>
-      <div class="muted">${tot.cal} eaten · <b style="color:${rem<0?'var(--rose)':'var(--mint)'}">${Math.abs(rem)} ${rem<0?'over':'left'}</b></div>
-    </div><div style="text-align:right"><span class="pill gray">${tot.p}p · ${tot.c}c · ${tot.f}f</span></div></div>
-  </div>
-
-  <div class="card tap" onclick="go('work')">
-    <div class="rowflex"><div class="dot" style="background:rgba(46,196,182,.12)">${ic('lift',22,'var(--mint)')}</div><div class="grow">
-      <div class="t" style="font-weight:700;font-size:15px">Workouts</div>
-      <div class="muted">${DB.activeWorkout?('In progress · '+fmtDur(Date.now()-DB.activeWorkout.start)):(lastWk?('Last: '+lastWk.name+' · '+fmtDur(lastWk.durationSec*1000)):'Tap to start lifting')}</div>
-    </div><div style="color:var(--mint);font-size:22px">›</div></div>
-  </div>
-
-  <div class="card">
-    <div class="rowflex"><div class="ring" style="--p:${wp}"><i>${wp}%</i></div><div class="grow">
-      <div class="t" style="font-weight:700;font-size:15px">Hydration</div>
-      <div class="muted">${water} / ${waterGoal} oz today</div>
-      <div style="margin-top:8px;display:flex;gap:8px">
-        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(8)">+8 oz</button>
-        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(16)">+16 oz</button>
-      </div></div></div>
-  </div>
-
-  <div class="two">
-    <div class="card tap" onclick="openSheet('weight')"><div class="muted">Weight</div>
-      <div style="font-size:26px;font-weight:850;margin-top:2px">${lastW?dispWeight(lastW.kg)+' <small style=color:var(--ink2)>'+wUnit()+'</small>':'—'}</div>
-      <div class="muted" style="font-size:12px">${lastW?weightTrend():'Tap to log'}</div></div>
-    <div class="card tap" onclick="openSheet('sleep')"><div class="muted">Sleep</div>
-      <div style="font-size:26px;font-weight:850;margin-top:2px">${DB.sleep.length?DB.sleep[DB.sleep.length-1].hours+' <small style=color:var(--ink2)>hrs</small>':'—'}</div>
-      <div class="muted" style="font-size:12px">${DB.sleep.length?'last night':'Tap to log'}</div></div>
-  </div>`;
+  let html=`<div class="hero"><div class="stats">
+    <div class="stat"><b>${streak()}</b><span>day streak 🔥</span></div>
+    <div class="stat"><b>${todayDoses.length}</b><span>doses today</span></div>
+    <div class="stat"><b>${tot.cal}</b><span>kcal eaten</span></div>
+  </div></div>`;
 
   html+=`<div class="ttl">Today's protocol</div><div class="card">`;
   if(todayDoses.length){
@@ -416,13 +361,45 @@ function renderHome(){
       return `<div class="li"><div class="dot">${inv.emoji||'💉'}</div>
       <div class="grow"><div class="t">${d.name}</div><div class="d">${d.amount} ${d.unit} · ${d.site||'site n/a'}</div></div>
       <div class="r">${fmtTime(d.date)}</div></div>`;}).join('');
-  } else html+=`<div class="empty">Nothing logged yet today.<br>Tap <b style="color:var(--mint)">+</b> to log a dose, food, or workout.</div>`;
-  html+=`</div>`;
+  } else html+=`<div class="empty">Nothing logged yet today.<br>Tap <b style="color:var(--mint)">+</b> to log a dose.</div>`;
+  html+=`</div><button class="btn ghost" style="margin-top:-6px;margin-bottom:14px" onclick="openSheet('log')">+ Log dose</button>`;
 
-  html+=`<div class="ttl">AI Insights</div>`+insightsCard();
-  html+=`<div class="disc">⚠︎ Pep AI is for informational & record-keeping purposes only. Not medical advice, diagnosis, or dosing instructions. Consult a qualified healthcare professional.</div>`;
+  html+=`<div class="card tap" onclick="go('food')">
+    <div class="rowflex"><div class="grow">
+      <div class="t" style="font-weight:700;font-size:15px">Nutrition</div>
+      <div class="muted">${tot.cal} eaten · <b style="color:${rem<0?'var(--rose)':'var(--mint)'}">${Math.abs(rem)} ${rem<0?'over':'left'}</b></div>
+    </div><div style="text-align:right"><span class="pill gray">${tot.p}p · ${tot.c}c · ${tot.f}f</span></div></div>
+  </div>`;
+
+  html+=`<div class="card tap" onclick="go('work')">
+    <div class="rowflex"><div class="dot" style="background:rgba(46,196,182,.12)">${ic('lift',22,'var(--mint)')}</div><div class="grow">
+      <div class="t" style="font-weight:700;font-size:15px">Workout</div>
+      <div class="muted">${DB.activeWorkout?('In progress · '+fmtDur(Date.now()-DB.activeWorkout.start)):(lastWk?('Last: '+lastWk.name+' · '+fmtDur(lastWk.durationSec*1000)):'Tap to start lifting')}</div>
+    </div><div style="color:var(--mint);font-size:22px">›</div></div>
+  </div>`;
+
+  html+=`<div class="card">
+    <div class="rowflex"><div class="ring" style="--p:${wp}"><i>${wp}%</i></div><div class="grow">
+      <div class="t" style="font-weight:700;font-size:15px">Hydration</div>
+      <div class="muted">${water} / ${waterGoal} oz today</div>
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(8)">+8 oz</button>
+        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(16)">+16 oz</button>
+      </div></div></div>
+  </div>`;
+
+  html+=`<div class="two">
+    <div class="card tap" onclick="go('body')"><div class="muted">Weight</div>
+      <div style="font-size:26px;font-weight:850;margin-top:2px">${lastW?dispWeight(lastW.kg)+' <small style=color:var(--ink2)>'+wUnit()+'</small>':'—'}</div>
+      <div class="muted" style="font-size:12px">${lastW?weightTrend():'Tap to log'}</div></div>
+    <div class="card tap" onclick="go('body')"><div class="muted">Sleep</div>
+      <div style="font-size:26px;font-weight:850;margin-top:2px">${lastSleep?lastSleep.hours+' <small style=color:var(--ink2)>hrs</small>':'—'}</div>
+      <div class="muted" style="font-size:12px">${lastSleep?'last night':'Tap to log'}</div></div>
+  </div>`;
+
+  html+=insightsCard();
+  html+=`<div class="disc">⚠︎ For informational & record-keeping only. Not medical advice. Consult a qualified healthcare professional.</div>`;
   document.getElementById('p-home').innerHTML=html;
-  refreshProTag();
 }
 function weightTrend(){if(DB.weights.length<2)return 'first entry';const a=DB.weights[DB.weights.length-2].kg,b=DB.weights[DB.weights.length-1].kg;const d=(dispWeight(b)-dispWeight(a)).toFixed(1);return (d>0?'▲ +':'▼ ')+d+' '+wUnit();}
 function insightsCard(){
@@ -430,7 +407,7 @@ function insightsCard(){
   const body=`Weight has changed by <b style="color:var(--ink)">${w.length>=2?(w[w.length-1].kg-w[0].kg).toFixed(1):'0'} kg</b> across your log, you've taken in <b style="color:var(--ink)">${tot.p}g protein today</b>, and completed <b style="color:var(--ink)">${nwk} workout${nwk===1?'':'s'}</b>. Pairing protein with consistent lifting supports lean-mass retention — keep the streak going.`;
   return `<div class="card"><div class="rowflex"><div class="dot" style="background:rgba(46,196,182,.14)">✨</div><div class="grow muted">${body}</div></div></div>`;
 }
-function addWater(ml){DB.water[todayKey()]=(DB.water[todayKey()]||0)+ml;save();renderFood();}
+function addWater(oz){DB.water[todayKey()]=(DB.water[todayKey()]||0)+oz;save();const on=document.querySelector('.page.on');if(on&&on.id==='p-home')renderHome();else renderFood();}
 
 /* INVENTORY */
 let invView='stack';
@@ -450,6 +427,7 @@ function renderInv(){
     if(toolTab==='site')paintSites();if(toolTab==='est')drawDecay();
     return;
   }
+  html+=`<button class="btn" style="margin-bottom:14px" onclick="openSheet('log')">+ Log dose</button>`;
   html+=`<div class="ttl">Compounds (${DB.inventory.length})</div><div class="card">`;
   if(DB.inventory.length){
     html+=DB.inventory.map(i=>`<div class="li" onclick="openSheet('invedit','${i.id}')">
@@ -477,7 +455,6 @@ function renderFood(){
   const macro=(lbl,val,goal,col)=>{const w=Math.min(100,Math.round(val/goal*100));
     return `<div class="macro"><small>${lbl}</small><div class="bar"><i style="width:${w}%;background:${col}"></i></div><b>${val} / ${goal}g</b></div>`;};
   const water=DB.water[day]||0,wp=Math.min(100,Math.round(water/waterGoal*100));
-  const lastW=DB.weights[DB.weights.length-1];
   let html=`<div style="display:flex;justify-content:flex-end;padding:4px 4px 6px">
     <button onclick="openSheet('goals')" style="background:transparent;border:0;color:var(--mint);font-weight:700;font-size:14px">Macros</button></div>`;
   html+=`<div class="card">
@@ -510,15 +487,6 @@ function renderFood(){
     html+=`<button class="addfood" onclick="openSheet('food','${k}')">+ Add food</button></div>`;
   });
   html+=`<div class="disc">Tap a food entry to remove it. Barcode data from Open Food Facts.</div>`;
-  html+=`<div class="ttl">Daily Trackers</div>`;
-  html+=`<div class="two">
-    <div class="card tap" onclick="openSheet('weight')"><div class="muted">Weight</div>
-      <div style="font-size:26px;font-weight:850;margin-top:2px">${lastW?dispWeight(lastW.kg)+' <small style=color:var(--ink2)>'+wUnit()+'</small>':'—'}</div>
-      <div class="muted" style="font-size:12px">${lastW?weightTrend():'Tap to log'}</div></div>
-    <div class="card tap" onclick="openSheet('sleep')"><div class="muted">Sleep</div>
-      <div style="font-size:26px;font-weight:850;margin-top:2px">${DB.sleep.length?DB.sleep[DB.sleep.length-1].hours+' <small style=color:var(--ink2)>hrs</small>':'—'}</div>
-      <div class="muted" style="font-size:12px">${DB.sleep.length?'last night':'Tap to log'}</div></div>
-  </div>`;
   document.getElementById('p-food').innerHTML=html;
 }
 function delFood(meal,idx){const m=getDayMeals(todayKey());m[meal].splice(idx,1);save();renderFood();}
@@ -646,19 +614,8 @@ function renderWork(){
   tick();
 }
 
-/* TOOLS */
+/* TOOLS (used inside Protocol's Peptide Tools segment) */
 let toolTab='calc';
-function renderTools(){
-  let html=`<div class="backbar"><button onclick="go('food')">‹ Diary</button></div>
-  <div class="seg">
-    <button class="${toolTab==='calc'?'on':''}" onclick="toolTab='calc';renderTools()">Calculator</button>
-    <button class="${toolTab==='site'?'on':''}" onclick="toolTab='site';renderTools()">Site Map</button>
-    <button class="${toolTab==='est'?'on':''}" onclick="toolTab='est';renderTools()">Half-life</button>
-  </div>`;
-  if(toolTab==='calc')html+=calcUI();if(toolTab==='site')html+=siteUI();if(toolTab==='est')html+=estUI();
-  document.getElementById('p-tools').innerHTML=html;
-  if(toolTab==='site')paintSites();if(toolTab==='est')drawDecay();
-}
 function calcUI(){
   return `<div class="card"><div class="ttl" style="margin:0 0 12px">Reconstitution calculator</div>
     <div class="field"><label>Compound strength in vial (mg)</label><input id="c_mg" type="number" inputmode="decimal" value="5" oninput="doCalc()"></div>
@@ -707,7 +664,6 @@ function drawDecay(){const cv=document.getElementById('decay');if(!cv)return;con
 
 /* SHEETS */
 const sheet=document.getElementById('sheet'),scrim=document.getElementById('scrim'),sbody=document.getElementById('sheetBody');
-let payPlan='year';
 function openSheet(type,a,b){sbody.innerHTML=sheetHTML(type,a,b);scrim.classList.add('on');sheet.classList.add('on');
   if(type==='log')setTimeout(()=>document.getElementById('lg_amt')&&document.getElementById('lg_amt').focus(),300);
   if(type==='food'){renderFoodResults('');setTimeout(()=>document.getElementById('foodSearch')&&document.getElementById('foodSearch').focus(),300);}
@@ -736,7 +692,6 @@ function sheetHTML(type,a,b){
   if(type==='addex')return addExSheet();
   if(type==='addset')return addSetSheet(a);
   if(type==='wkdetail')return wkDetailSheet(a);
-  if(type==='paywall')return paywallSheet();
   return '';
 }
 function pickSheet(){
@@ -767,7 +722,7 @@ function logSheet(){
 }
 function saveDose(){const inv=DB.inventory.find(i=>i.id===v('lg_inv'));if(!inv){closeSheet();return;}const amt=v('lg_amt');if(!amt)return;
   DB.doses.push({id:uid(),invId:inv.id,name:inv.name,amount:amt,unit:v('lg_unit'),site:v('lg_site'),date:new Date().toISOString()});
-  const s=SITES.find(x=>x.lbl===v('lg_site'));if(s)DB.sites[s.id]=Date.now();save();closeSheet();go('food');toast('Dose logged');}
+  const s=SITES.find(x=>x.lbl===v('lg_site'));if(s)DB.sites[s.id]=Date.now();save();closeSheet();go('home');toast('Dose logged');}
 function invSheet(id){const i=id?DB.inventory.find(x=>x.id===id):{};
   return `<h2>${id?'Edit':'Add'} compound</h2>
   <div class="field"><label>Name</label><input id="iv_name" value="${i.name||''}" placeholder="e.g. BPC-157"></div>
@@ -784,41 +739,71 @@ function saveInv(id){const o={name:v('iv_name')||'Untitled',type:v('iv_type'),em
 function delInv(id){DB.inventory=DB.inventory.filter(x=>x.id!==id);save();closeSheet();renderInv();}
 function weightSheet(){return `<h2>Log weight</h2><div class="field" style="margin-top:12px"><label>Weight (${wUnit()})</label><input id="wt_v" type="number" inputmode="decimal" autofocus></div><button class="btn" onclick="saveWeight()">Save</button>`;}
 function saveWeight(){let val=parseFloat(v('wt_v'));if(!val)return;const kg=uImperial()?lbToKg(val):val;const i=DB.weights.findIndex(w=>w.date===todayKey());const e={date:todayKey(),kg:Math.round(kg*100)/100};
-  if(i>=0)DB.weights[i]=e;else DB.weights.push(e);save();closeSheet();go('food');toast('Weight saved');}
+  if(i>=0)DB.weights[i]=e;else DB.weights.push(e);save();closeSheet();go('body');toast('Weight saved');}
 function sleepSheet(){return `<h2>Log sleep</h2><div class="two" style="margin-top:12px">
   <div class="field"><label>Hours slept</label><input id="sl_h" type="number" inputmode="decimal" placeholder="7.5"></div>
   <div class="field"><label>Quality 1–5</label><input id="sl_q" type="number" min="1" max="5" placeholder="4"></div></div><button class="btn" onclick="saveSleep()">Save</button>`;}
-function saveSleep(){const h=parseFloat(v('sl_h'));if(!h)return;DB.sleep.push({date:todayKey(),hours:h,quality:parseFloat(v('sl_q'))||0});save();closeSheet();go('sleep');toast('Sleep saved');}
-function renderSleep(){
-  const entries=[...DB.sleep].reverse();
-  const recent=DB.sleep.slice(-7);
-  const avgHours=recent.length?(recent.reduce((s,e)=>s+e.hours,0)/recent.length).toFixed(1):'—';
-  const withQ=recent.filter(e=>e.quality>0);
-  const avgQ=withQ.length?(withQ.reduce((s,e)=>s+e.quality,0)/withQ.length).toFixed(1):'—';
-  const totHrs=DB.sleep.reduce((s,e)=>s+e.hours,0).toFixed(0);
-  let html=`<div class="hero"><div class="stats">
-    <div class="stat"><b>${avgHours}</b><span>avg hrs <small>(7d)</small></span></div>
-    <div class="stat"><b>${avgQ}</b><span>avg quality</span></div>
-    <div class="stat"><b>${totHrs}</b><span>total hrs</span></div>
-  </div></div>
-  <button class="btn" onclick="openSheet('sleep')" style="margin-bottom:14px">+ Log sleep</button>
-  <div class="ttl">Sleep history</div>`;
-  if(entries.length){
-    html+=`<div class="card">`;
-    html+=entries.slice(0,50).map(e=>{
-      const stars=e.quality?'★'.repeat(e.quality)+'☆'.repeat(5-e.quality):'';
-      const color=e.hours>=7?'var(--mint)':e.hours>=6?'var(--amber)':'var(--rose)';
-      const label=e.hours>=7?'Good':e.hours>=6?'Fair':'Low';
-      return `<div class="li"><div class="dot">🌙</div>
-        <div class="grow"><div class="t">${e.hours} hrs${stars?' · <span style="color:var(--amber)">'+stars+'</span>':''}</div>
-        <div class="d">${e.date}${e.quality?' · Quality '+e.quality+'/5':''}</div></div>
-        <div class="r" style="color:${color}">${label}</div></div>`;
-    }).join('');
-    html+=`</div>`;
+function saveSleep(){const h=parseFloat(v('sl_h'));if(!h)return;DB.sleep.push({date:todayKey(),hours:h,quality:parseFloat(v('sl_q'))||0});save();closeSheet();go('body');toast('Sleep saved');}
+function renderBody(){
+  const el=document.getElementById('p-body');if(!el)return;
+  let html=`<div class="seg">
+    <button class="${bodyTab==='weight'?'on':''}" onclick="bodyTab='weight';renderBody()">Weight</button>
+    <button class="${bodyTab==='sleep'?'on':''}" onclick="bodyTab='sleep';renderBody()">Sleep</button>
+  </div>`;
+  if(bodyTab==='weight'){
+    const entries=[...DB.weights].reverse();
+    const lastW=DB.weights[DB.weights.length-1];
+    const firstW=DB.weights[0];
+    const totalChange=(lastW&&firstW&&DB.weights.length>1)?((dispWeight(lastW.kg)-dispWeight(firstW.kg)).toFixed(1)):null;
+    html+=`<div class="hero"><div class="stats">
+      <div class="stat"><b>${lastW?dispWeight(lastW.kg)+'':' —'}</b><span>current ${wUnit()}</span></div>
+      <div class="stat"><b>${totalChange!==null?(totalChange>0?'+':'')+totalChange:'—'}</b><span>total change</span></div>
+      <div class="stat"><b>${DB.weights.length}</b><span>entries</span></div>
+    </div></div>
+    <button class="btn" style="margin-bottom:14px" onclick="openSheet('weight')">+ Log weight</button>
+    <div class="ttl">Weight history</div>`;
+    if(entries.length){
+      html+=`<div class="card">`;
+      html+=entries.slice(0,60).map((e,i)=>{
+        const prev=entries[i+1];
+        const delta=prev?(dispWeight(e.kg)-dispWeight(prev.kg)):null;
+        const col=delta===null?'var(--ink2)':delta<0?'var(--mint)':delta>0?'var(--rose)':'var(--ink2)';
+        const arrow=delta===null?'':delta<0?'▼ ':delta>0?'▲ +':'→ ';
+        return `<div class="li"><div class="dot">⚖️</div>
+          <div class="grow"><div class="t">${dispWeight(e.kg)} ${wUnit()}</div><div class="d">${e.date}</div></div>
+          <div class="r" style="color:${col}">${delta!==null?arrow+Math.abs(delta).toFixed(1)+' '+wUnit():''}</div></div>`;
+      }).join('');
+      html+=`</div>`;
+    } else html+=`<div class="empty">No weight logged yet.<br>Tap the button above to start tracking.</div>`;
   } else {
-    html+=`<div class="empty">No sleep logged yet.<br>Tap the button above to start tracking.</div>`;
+    const recentSleep=DB.sleep.slice(-7);
+    const avgHours=recentSleep.length?(recentSleep.reduce((s,e)=>s+e.hours,0)/recentSleep.length).toFixed(1):'—';
+    const withQ=recentSleep.filter(e=>e.quality>0);
+    const avgQ=withQ.length?(withQ.reduce((s,e)=>s+e.quality,0)/withQ.length).toFixed(1):'—';
+    const totHrs=DB.sleep.reduce((s,e)=>s+e.hours,0).toFixed(0);
+    const entries=[...DB.sleep].reverse();
+    html+=`<div class="hero"><div class="stats">
+      <div class="stat"><b>${avgHours}</b><span>avg hrs <small>(7d)</small></span></div>
+      <div class="stat"><b>${avgQ}</b><span>avg quality</span></div>
+      <div class="stat"><b>${totHrs}</b><span>total hrs</span></div>
+    </div></div>
+    <button class="btn" style="margin-bottom:14px" onclick="openSheet('sleep')">+ Log sleep</button>
+    <div class="ttl">Sleep history</div>`;
+    if(entries.length){
+      html+=`<div class="card">`;
+      html+=entries.slice(0,60).map(e=>{
+        const stars=e.quality?'★'.repeat(e.quality)+'☆'.repeat(5-e.quality):'';
+        const col=e.hours>=7?'var(--mint)':e.hours>=6?'var(--amber)':'var(--rose)';
+        const lbl=e.hours>=7?'Good':e.hours>=6?'Fair':'Low';
+        return `<div class="li"><div class="dot">🌙</div>
+          <div class="grow"><div class="t">${e.hours} hrs${stars?' · <span style="color:var(--amber)">'+stars+'</span>':''}</div>
+          <div class="d">${e.date}${e.quality?' · Quality '+e.quality+'/5':''}</div></div>
+          <div class="r" style="color:${col}">${lbl}</div></div>`;
+      }).join('');
+      html+=`</div>`;
+    } else html+=`<div class="empty">No sleep logged yet.<br>Tap the button above to start tracking.</div>`;
   }
-  const el=document.getElementById('p-sleep');if(el)el.innerHTML=html;
+  el.innerHTML=html;
 }
 
 function foodSheet(meal){const opts=MEAL_KEYS.map(k=>`<option value="${k}" ${k===meal?'selected':''}>${MEAL_LBL[k]}</option>`).join('');
@@ -984,15 +969,13 @@ function settingsSheet(){
   const themes=[['mint','#2EC4B6'],['ocean','#5db7f0'],['violet','#b388f0'],['sun','#f0b75e']];
   const badges=[['🔥','7-day streak',streak()>=7],['💧','Hydration',Object.values(DB.water).some(x=>x>=waterGoal)],['📈','First weigh-in',DB.weights.length>0],['💉','10 doses',DB.doses.length>=10],['🍎','Logged a meal',Object.values(DB.meals).some(d=>Object.values(d).some(a=>a.length))],['🏋️','First workout',DB.workouts.length>0]];
   return `<h2>Settings</h2>
-  <div class="card" style="margin-top:14px;border-color:var(--mint)"><div class="rowflex"><div class="dot" style="background:rgba(46,196,182,.16);border-color:var(--mint)">⭐</div><div class="grow"><div class="t" style="font-weight:700">Premium unlocked (local build)</div><div class="d">All features on for testing</div></div></div></div>
-  <div class="field" style="margin-top:6px"><label>Your name</label><input id="set_name" value="${DB.profile.name}" placeholder="Name" oninput="DB.profile.name=this.value;save()"></div>
+  <div class="field" style="margin-top:14px"><label>Your name</label><input id="set_name" value="${DB.profile.name}" placeholder="Name" oninput="DB.profile.name=this.value;save()"></div>
   <div class="field"><label>Units</label><select onchange="DB.units=this.value;save();toast('Units: '+this.value);renderFood()"><option value="imperial" ${uImperial()?'selected':''}>Imperial (lb, ft/in)</option><option value="metric" ${!uImperial()?'selected':''}>Metric (kg, cm)</option></select></div>
   <label>Accent theme</label>
   <div class="swatches" style="margin-bottom:18px">${themes.map(([k,c])=>`<div class="sw ${DB.theme===k?'on':''}" style="background:${c}" onclick="setTheme('${k}')"></div>`).join('')}</div>
   <label>Achievements</label>
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px">${badges.map(([e,t,got])=>`<div class="badge ${got?'got':''}"><div class="b">${e}</div><span>${t}</span></div>`).join('')}</div>
-  <button class="btn ghost" onclick="openSheet('paywall')">Preview Premium paywall</button>
-  <button class="btn ghost" style="margin-top:10px" onclick="exportData()">Export my data (JSON)</button>
+  <button class="btn ghost" onclick="exportData()">Export my data (JSON)</button>
   <button class="btn rose" style="margin-top:10px" onclick="resetAll()">Reset all data</button>
   <div class="disc" style="margin-top:14px">Data is stored only on this device. Pep AI is for informational & record-keeping purposes only — not medical advice.</div>`;
 }
@@ -1001,48 +984,11 @@ function applyTheme(){if(DB.theme==='mint')document.documentElement.removeAttrib
 function exportData(){const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='pep-ai-data.json';a.click();}
 function resetAll(){if(confirm('Delete all your Pep AI data on this device?')){store.set('pepai',null);location.reload();}}
 
-/* paywall (MyFitnessPal-style, preview only in this local build) */
-function paywallSheet(){
-  const feats=[['🚫','Ad-free experience','Focus without distraction'],['|||','Barcode scanner','Log packaged foods in a tap'],['📷','Meal Scan','Photo-to-nutrition logging'],['🎯','Custom macro goals','By gram or %, even per meal'],['📅','Goals by day & meal','Different targets any day'],['🔬','Food analysis','Best & worst logged foods'],['⏱️','Intermittent fasting tracker','Track fasting windows'],['📤','Data export & priority support','Export your diary']];
-  return `<div class="pw-hero"><div style="font-size:34px">⭐</div><h2>Pep AI Premium</h2><p>MyFitnessPal-style toolkit — already unlocked in this build</p></div>
-  ${feats.map(f=>`<div class="pw-feat"><span class="ic">✓</span><span><b>${f[0]} ${f[1]}</b><br><span class="muted">${f[2]}</span></span></div>`).join('')}
-  <div class="pw-price">
-    <div class="pw-opt ${payPlan==='month'?'on':''}" onclick="payPlan='month';openSheet('paywall')"><b>$19.99</b><span class="per">per month</span></div>
-    <div class="pw-opt ${payPlan==='year'?'on':''}" onclick="payPlan='year';openSheet('paywall')"><div class="save">SAVE 67%</div><b>$79.99</b><span class="per">per year</span><div class="eq">$6.67/mo billed annually</div></div>
-  </div>
-  <button class="btn" onclick="closeSheet();toast('Already unlocked 🎉')">Continue</button>
-  <div class="disc">Preview only — Premium is fully unlocked in this local build. Mirrors MyFitnessPal Premium pricing.</div>`;
-}
-
-/* PEP BOT */
-const KB=[
-  {k:['bpc','157'],a:"BPC-157 is a synthetic peptide studied mainly in animal research for tissue repair and gut health. Human clinical data is limited and it's not FDA-approved as a drug. General educational info, not medical advice."},
-  {k:['semaglutide','ozempic','wegovy'],a:"Semaglutide is a GLP-1 receptor agonist for type 2 diabetes and weight management, typically dosed weekly and titrated under medical supervision. I can't give dosing — follow a clinician's guidance."},
-  {k:['tirzepatide','mounjaro','zepbound'],a:"Tirzepatide is a dual GIP/GLP-1 agonist for diabetes and weight management, dosed weekly. Titration must be directed by a healthcare provider."},
-  {k:['glp'],a:"GLP-1 receptor agonists mimic a gut hormone that slows gastric emptying and supports satiety and glucose control. Examples: semaglutide, tirzepatide. Ask a clinician about suitability."},
-  {k:['reconstitut','mix','bac','bacteriostatic','dilute'],a:"Reconstitution dissolves a freeze-dried peptide with bacteriostatic water. Concentration = mg in vial ÷ ml of water. Use Tools → Calculator to convert a target dose into syringe units. Always verify and consult a professional."},
-  {k:['site','inject','rotat'],a:"Rotating injection sites helps reduce irritation. Common subcutaneous sites: abdomen, thighs, back of arms. Track rotation in Tools → Site Map and follow sterile-technique guidance from a professional."},
-  {k:['protein','macro','calorie','nutrition','eat','diet'],a:"Track meals and macros in the Diary tab — scan a barcode, search, or quick-add custom foods. Adequate protein plus consistent lifting supports muscle retention on GLP-1 protocols. For a personalized plan, see a dietitian."},
-  {k:['lift','workout','set','rep','rest','train'],a:"Use the Lift tab to start a workout, add exercises, and log sets (reps, weight) with a built-in rest timer and total-duration stopwatch. Your history saves locally so you can track progression over time."},
-  {k:['half','clearance'],a:"Half-life is the time for blood levels to halve. Weekly GLP-1s have long half-lives (steadier levels); short ones clear fast. The Half-life tab shows a rough decay estimate."},
-  {k:['storage','store','fridge','refriger'],a:"Many reconstituted peptides are refrigerated and kept from light; lyophilized vials are often more stable. Follow the product's and your provider's storage guidance."}
-];
-function botReply(msg){const m=msg.toLowerCase();for(const e of KB){if(e.k.some(k=>m.includes(k)))return e.a;}
-  if(/hi|hello|hey/.test(m))return "Hey! I'm Pep Bot. Ask general educational questions about peptides, GLP-1s, reconstitution, nutrition, or training. I can't give medical or dosing advice.";
-  return "I keep things educational and general — no medical or dosing advice. Try a compound (BPC-157, semaglutide, tirzepatide), reconstitution, nutrition/macros, lifting, half-life, sites, or storage. For anything personal, consult a professional.";}
-function pushBub(text,who){const c=document.getElementById('chat');const d=document.createElement('div');d.className='bub '+who;d.textContent=text;c.appendChild(d);d.scrollIntoView({behavior:'smooth',block:'end'});}
-function sendChat(){const inp=document.getElementById('chatIn');const t=inp.value.trim();if(!t)return;pushBub(t,'me');inp.value='';setTimeout(()=>pushBub(botReply(t),'ai'),350);}
-function initBot(){const c=document.getElementById('chat');
-  if(!c.children.length)pushBub("Hi, I'm Pep Bot 🤖 — your educational companion. Ask about peptides, GLP-1s, reconstitution, nutrition, or training. I don't give medical or dosing advice.",'ai');
-  const chips=['What is BPC-157?','How do I reconstitute?','Protein on GLP-1s?','How does the Lift tab work?'];
-  document.getElementById('botChips').innerHTML=chips.map(c=>`<button class="chip" onclick="quick('${c}')">${c}</button>`).join('');}
-function quick(t){document.getElementById('chatIn').value=t;sendChat();}
-
 /* toast + boot */
 let toastT;
 function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('on'),1900);}
-applyTheme();go('food');startWkTimer();
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){const on=document.querySelector('.page.on');if(on&&on.id==='p-food')renderFood();if(on&&on.id==='p-work')renderWork();}});
+applyTheme();go('home');startWkTimer();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){const on=document.querySelector('.page.on');if(on&&on.id==='p-home')renderHome();if(on&&on.id==='p-food')renderFood();if(on&&on.id==='p-work')renderWork();if(on&&on.id==='p-body')renderBody();}});
 </script>
 </body>
 </html>
