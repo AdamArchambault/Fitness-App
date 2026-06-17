@@ -183,6 +183,11 @@
   .setrow .sn{width:46px;color:var(--ink3);font-weight:700;font-size:12px;}
   .setrow .x{margin-left:auto;color:var(--ink3);font-size:18px;background:none;border:0;}
   .addset{background:transparent;border:0;color:var(--mint);font-weight:700;font-size:13.5px;padding:9px 2px;}
+  .prevex{font-size:11.5px;color:var(--ink3);padding:3px 2px 8px;font-weight:600;line-height:1.4;}
+  .prevex b{color:var(--ink2);}
+  .extimer{font-size:38px;font-weight:850;letter-spacing:-.02em;font-variant-numeric:tabular-nums;text-align:center;padding:10px 0 4px;}
+  .wkhist-toggle{background:transparent;border:0;color:var(--mint);font-weight:700;font-size:13.5px;padding:10px 2px;width:100%;text-align:left;}
+  .extypebadge{font-size:11px;font-weight:700;border-radius:8px;padding:2px 8px;border:1px solid;}
 
   video.scan{width:100%;border-radius:14px;background:#000;aspect-ratio:4/3;object-fit:cover;}
 
@@ -543,8 +548,8 @@ function calcScan(){const sc=window._scanned;const o=document.getElementById('sa
 function stepScan(d){const el=document.getElementById('sa_serv');el.value=Math.max(0.5,(parseFloat(el.value)||1)+d);calcScan();}
 
 /* ---- WORKOUTS (lifting) ---- */
-const LIFTS=['Bench Press','Back Squat','Deadlift','Overhead Press','Barbell Row','Lat Pulldown','Pull-up','Incline DB Press','Bicep Curl','Tricep Pushdown','Leg Press','Romanian Deadlift','Lateral Raise','Leg Curl','Calf Raise','Dumbbell Press'];
-let restEnd=null,wkInterval=null;
+const LIFTS=['Bench Press','Incline Bench Press','Decline Bench Press','Dumbbell Press','Incline DB Press','Dumbbell Fly','Cable Fly','Pec Deck','Back Squat','Front Squat','Goblet Squat','Deadlift','Romanian Deadlift','Sumo Deadlift','Overhead Press','Arnold Press','Barbell Row','Dumbbell Row','Cable Row','Lat Pulldown','Pull-up','Chin-up','Bicep Curl','Hammer Curl','Preacher Curl','Tricep Pushdown','Skull Crusher','Tricep Dip','Leg Press','Leg Extension','Leg Extension (Single-Leg)','Leg Curl','Leg Curl (Single-Leg)','Nordic Curl','Lateral Raise','Front Raise','Cable Lateral Raise','Calf Raise','Seated Calf Raise','Hip Thrust','Glute Bridge','Cable Kickback','Face Pull','Shrug','Upright Row','Reverse Fly','Plank','Ab Wheel','Hanging Leg Raise','Cable Crunch'];
+let restEnd=null,wkInterval=null,showWkHistory=false,activeExIdx=-1;
 function startWkTimer(){if(!wkInterval)wkInterval=setInterval(tick,1000);}
 function tick(){
   const el=document.getElementById('restDisplay');
@@ -555,19 +560,23 @@ function tick(){
 function startRest(sec){restEnd=Date.now()+sec*1000;startWkTimer();tick();}
 function addRest(s){if(restEnd)restEnd+=s*1000;tick();}
 function skipRest(){restEnd=null;const el=document.getElementById('restDisplay');if(el)el.textContent='0:00';}
+function getRecentExercises(limit){limit=limit||15;const seen=new Set(),result=[];[...DB.workouts].reverse().forEach(w=>w.exercises.forEach(e=>{if(!seen.has(e.name)){seen.add(e.name);result.push(e.name);}}));return result.slice(0,limit);}
+function getPrevExercise(name){const lc=name.toLowerCase();for(let i=DB.workouts.length-1;i>=0;i--){const ex=DB.workouts[i].exercises.find(e=>e.name.toLowerCase()===lc);if(ex&&ex.sets.length)return{workout:DB.workouts[i],exercise:ex};}return null;}
 
 function startWorkout(name){DB.activeWorkout={start:Date.now(),name:name||('Workout '+(DB.workouts.length+1)),exercises:[]};save();startWkTimer();closeSheet();go('work');}
 function setWkName(val){if(DB.activeWorkout){DB.activeWorkout.name=val;save();}}
-function addExercise(name){if(!DB.activeWorkout)return;DB.activeWorkout.exercises.push({name:name||'Exercise',sets:[]});save();closeSheet();renderWork();}
-function saveSet(exIdx){const ex=DB.activeWorkout.exercises[exIdx];const reps=+v('as_reps')||0,weight=+v('as_weight')||0,rest=+v('as_rest')||0;
-  ex.sets.push({reps,weight,rest});save();const t=document.getElementById('as_timer');const startT=t?t.checked:true;closeSheet();renderWork();if(startT&&rest>0)startRest(rest);}
+function addExercise(name){if(!DB.activeWorkout)return;const n=(name||'').trim();if(!n)return;DB.activeWorkout.exercises.push({name:n,type:'reps',sets:[]});activeExIdx=DB.activeWorkout.exercises.length-1;save();closeSheet();renderWork();}
+function saveSet(exIdx){const ex=DB.activeWorkout.exercises[exIdx];const val=+v('as_reps')||0,weight=+v('as_weight')||0,rest=+v('as_rest')||0;
+  const isTime=ex.type==='time';ex.sets.push(isTime?{duration:val,weight,rest}:{reps:val,weight,rest});activeExIdx=exIdx;save();const t=document.getElementById('as_timer');const startT=t?t.checked:true;closeSheet();renderWork();if(startT&&rest>0)startRest(rest);}
+function saveExName(ei){const name=(document.getElementById('ex_rename')||{}).value||'';if(name.trim())DB.activeWorkout.exercises[ei].name=name.trim();save();closeSheet();renderWork();}
+function setExType(ei,type){DB.activeWorkout.exercises[ei].type=type;save();closeSheet();renderWork();}
 function delSet(exIdx,setIdx){DB.activeWorkout.exercises[exIdx].sets.splice(setIdx,1);save();renderWork();}
 function delExercise(exIdx){DB.activeWorkout.exercises.splice(exIdx,1);save();renderWork();}
 function finishWorkout(){const aw=DB.activeWorkout;if(!aw)return;
   aw.durationSec=Math.round((Date.now()-aw.start)/1000);aw.date=new Date().toISOString();
   DB.workouts.push(aw);DB.activeWorkout=null;restEnd=null;skipRest();save();renderWork();toast('Workout saved 💪');}
 function cancelWorkout(){if(confirm('Discard this workout?')){DB.activeWorkout=null;restEnd=null;skipRest();save();renderWork();}}
-function wkVolume(w){let v=0;w.exercises.forEach(e=>e.sets.forEach(s=>v+=s.reps*s.weight));return Math.round(v);}
+function wkVolume(w){let v=0;w.exercises.forEach(e=>e.sets.forEach(s=>v+=(s.reps||0)*s.weight));return Math.round(v);}
 function wkSets(w){return w.exercises.reduce((s,e)=>s+e.sets.length,0);}
 function fmtWkDur(sec){const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60);return h>0?`${h}h ${m}m`:`${m}m`;}
 
@@ -575,39 +584,72 @@ function renderWork(){
   let html='';
   if(DB.activeWorkout){
     const aw=DB.activeWorkout;
+    const lastExIdx=aw.exercises.length-1;
+    const timerIdx=activeExIdx>=0&&activeExIdx<aw.exercises.length?activeExIdx:lastExIdx;
     html+=`<div class="wkactive">
       <div style="font-size:11px;font-weight:800;color:var(--mint);letter-spacing:.1em">● ACTIVE WORKOUT</div>
       <input value="${aw.name}" onchange="setWkName(this.value)" style="background:transparent;border:0;font-size:20px;font-weight:800;padding:6px 0;color:var(--ink)">
-      <div class="wktimer" id="restDisplay">${restEnd?fmtDur(Math.max(0,restEnd-Date.now())):'0:00'}</div>
-      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:6px 0 4px">
-        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="startRest(60)">60s</button>
-        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="startRest(90)">90s</button>
-        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="startRest(120)">2m</button>
-        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="startRest(180)">3m</button>
-        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="skipRest()">Reset</button>
-      </div>
     </div>`;
     aw.exercises.forEach((ex,ei)=>{
+      const isActive=ei===timerIdx;
+      const isTime=ex.type==='time';
+      const prev=getPrevExercise(ex.name);
       html+=`<div class="card" style="padding:10px 16px 4px">
-        <div class="exhead"><span class="n">${ex.name}</span><button class="x" onclick="delExercise(${ei})">⋯</button></div>`;
-      if(ex.sets.length){ex.sets.forEach((s,si)=>{html+=`<div class="setrow"><span class="sn">SET ${si+1}</span>
-        <span>${s.reps} reps</span><span style="color:var(--ink2)">${s.weight} ${wUnit()}</span>
-        <span style="color:var(--ink3)">· ${s.rest}s rest</span><button class="x" onclick="delSet(${ei},${si})">×</button></div>`;});}
+        <div class="exhead">
+          <span class="n">${ex.name}</span>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="extypebadge" style="color:${isTime?'var(--mint)':'var(--ink3)'};border-color:${isTime?'rgba(46,196,182,.4)':'var(--line2)'}">${isTime?'⏱ Time':'🔢 Reps'}</span>
+            <button class="x" onclick="openSheet('exoptions',${ei})">⋯</button>
+          </div>
+        </div>`;
+      if(prev){
+        const ps=prev.exercise.sets,pd=fmtDay(prev.workout.date),pt=prev.exercise.type==='time';
+        const pstr=ps.slice(0,4).map(s=>pt||s.duration!=null?`${s.duration!=null?s.duration:s.reps}s`:`${s.weight}×${s.reps}`).join(', ');
+        const punit=ps[0]&&!pt&&ps[0].duration==null?' '+wUnit():'';
+        html+=`<div class="prevex">⟳ Previous · ${pd} — <b>${pstr}${punit}</b></div>`;
+      }
+      if(ex.sets.length){ex.sets.forEach((s,si)=>{
+        const setDisp=s.duration!=null?`${s.duration}s`:`${s.reps} reps`;
+        html+=`<div class="setrow"><span class="sn">SET ${si+1}</span>
+          <span>${setDisp}</span><span style="color:var(--ink2)">${s.weight} ${wUnit()}</span>
+          <span style="color:var(--ink3)">· ${s.rest}s rest</span><button class="x" onclick="delSet(${ei},${si})">×</button></div>`;
+      });}
       else html+=`<div class="muted" style="padding:6px 2px">No sets yet.</div>`;
+      if(isActive){
+        html+=`<div class="extimer" id="restDisplay">${restEnd?fmtDur(Math.max(0,restEnd-Date.now())):'0:00'}</div>
+          <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:2px 0 6px">
+            <button class="btn ghost sm" style="width:auto;padding:6px 12px" onclick="startRest(60)">60s</button>
+            <button class="btn ghost sm" style="width:auto;padding:6px 12px" onclick="startRest(90)">90s</button>
+            <button class="btn ghost sm" style="width:auto;padding:6px 12px" onclick="startRest(120)">2m</button>
+            <button class="btn ghost sm" style="width:auto;padding:6px 12px" onclick="startRest(180)">3m</button>
+            <button class="btn ghost sm" style="width:auto;padding:6px 12px" onclick="skipRest()">Reset</button>
+          </div>`;
+      }
       html+=`<button class="addset" onclick="openSheet('addset',${ei})">+ Add set</button></div>`;
     });
     html+=`<button class="btn ghost" onclick="openSheet('addex')">+ Add exercise</button>
       <button class="btn" style="margin-top:10px" onclick="finishWorkout()">Finish workout</button>
       <button class="btn rose" style="margin-top:10px" onclick="cancelWorkout()">Discard</button>`;
+    if(DB.workouts.length){
+      html+=`<button class="wkhist-toggle" onclick="showWkHistory=!showWkHistory;renderWork()">${showWkHistory?'▲ Hide':'▼ Show'} past workouts (${DB.workouts.length})</button>`;
+      if(showWkHistory){
+        html+=`<div class="card">`+[...DB.workouts].reverse().map(w=>{
+          const ri=DB.workouts.indexOf(w);
+          return `<div class="li" onclick="openSheet('wkdetail',${ri})"><div class="dot">🏋️</div>
+            <div class="grow"><div class="t">${w.name}</div><div class="d">${w.exercises.length} exercises · ${wkSets(w)} sets</div></div>
+            <div class="r">${fmtDay(w.date)}<br>${fmtWkDur(w.durationSec)}</div></div>`;
+        }).join('')+`</div>`;
+      }
+    }
   } else {
     html+=`<button class="btn" onclick="openSheet('startworkout')">＋ Start workout</button>`;
     html+=`<div class="ttl">History (${DB.workouts.length})</div>`;
     if(DB.workouts.length){
-      html+=`<div class="card">`+[...DB.workouts].reverse().map((w)=>{
+      html+=`<div class="card">`+[...DB.workouts].reverse().map(w=>{
         const realIdx=DB.workouts.indexOf(w);
         return `<div class="li" onclick="openSheet('wkdetail',${realIdx})"><div class="dot">🏋️</div>
-        <div class="grow"><div class="t">${w.name}</div><div class="d">${w.exercises.length} exercises · ${wkSets(w)} sets</div></div>
-        <div class="r">${fmtDay(w.date)}<br>${fmtWkDur(w.durationSec)}</div></div>`;}).join('')+`</div>`;
+          <div class="grow"><div class="t">${w.name}</div><div class="d">${w.exercises.length} exercises · ${wkSets(w)} sets</div></div>
+          <div class="r">${fmtDay(w.date)}<br>${fmtWkDur(w.durationSec)}</div></div>`;}).join('')+`</div>`;
     } else html+=`<div class="empty">No workouts yet.<br>Start one to track exercises, sets, reps & rest.</div>`;
   }
   document.getElementById('p-work').innerHTML=html;
@@ -692,6 +734,7 @@ function sheetHTML(type,a,b){
   if(type==='addex')return addExSheet();
   if(type==='addset')return addSetSheet(a);
   if(type==='wkdetail')return wkDetailSheet(a);
+  if(type==='exoptions')return exOptionsSheet(a);
   return '';
 }
 function pickSheet(){
@@ -938,20 +981,37 @@ function scanaddSheet(meal){const sc=window._scanned||{n:'Item',s:'1 serving',ca
   <button class="btn" style="margin-top:12px" onclick="addScanned('${meal}')">Add to diary</button>`;}
 
 /* workout sheets */
-function addExSheet(){return `<h2>Add exercise</h2>
-  <div class="field" style="margin-top:10px"><input id="ex_name" placeholder="Exercise name" onkeydown="if(event.key==='Enter')addExercise(this.value)"></div>
-  <label>Common lifts</label>
-  <div class="chips" style="flex-wrap:wrap;overflow:visible">${LIFTS.map(l=>`<button class="chip" onclick="addExercise('${l}')">${l}</button>`).join('')}</div>
-  <button class="btn" style="margin-top:10px" onclick="addExercise(document.getElementById('ex_name').value)">Add</button>`;}
-function addSetSheet(exIdx){const ex=DB.activeWorkout.exercises[exIdx];const last=ex.sets[ex.sets.length-1]||{reps:8,weight:0,rest:90};
+function addExSheet(){
+  const recent=getRecentExercises(12);
+  const recentHtml=recent.length?`<label style="margin-bottom:8px">Recently used</label><div class="chips" style="flex-wrap:wrap;overflow:visible;margin-bottom:14px">${recent.map(l=>`<button class="chip" onclick="addExercise('${l}')">${l}</button>`).join('')}</div>`:'';
+  return `<h2>Add exercise</h2>
+  <div class="field" style="margin-top:10px"><input id="ex_name" placeholder="Search or type name…" oninput="filterExList(this.value)" onkeydown="if(event.key==='Enter')addExercise(this.value)"></div>
+  ${recentHtml}<label style="margin-bottom:8px">All exercises</label>
+  <div id="exList" class="chips" style="flex-wrap:wrap;overflow:visible">${LIFTS.map(l=>`<button class="chip" onclick="addExercise('${l}')">${l}</button>`).join('')}</div>
+  <button class="btn" style="margin-top:12px" onclick="addExercise(document.getElementById('ex_name').value)">Add</button>`;}
+function filterExList(q){const box=document.getElementById('exList');if(!box)return;q=(q||'').toLowerCase().trim();const m=LIFTS.filter(l=>!q||l.toLowerCase().includes(q));box.innerHTML=m.map(l=>`<button class="chip" onclick="addExercise('${l}')">${l}</button>`).join('');}
+function addSetSheet(exIdx){const ex=DB.activeWorkout.exercises[exIdx];const isTime=ex.type==='time';const last=ex.sets[ex.sets.length-1]||{reps:8,duration:30,weight:0,rest:90};
+  const firstField=isTime
+    ?`<div class="field"><label>Duration (s)</label><input id="as_reps" type="number" inputmode="numeric" value="${last.duration||30}"></div>`
+    :`<div class="field"><label>Reps</label><input id="as_reps" type="number" inputmode="numeric" value="${last.reps||8}"></div>`;
   return `<h2>Add set — ${ex.name}</h2>
   <div class="three" style="margin-top:12px">
-    <div class="field"><label>Reps</label><input id="as_reps" type="number" inputmode="numeric" value="${last.reps}"></div>
-    <div class="field"><label>Weight (${wUnit()})</label><input id="as_weight" type="number" inputmode="decimal" value="${last.weight}"></div>
-    <div class="field"><label>Rest (s)</label><input id="as_rest" type="number" inputmode="numeric" value="${last.rest}"></div>
+    ${firstField}
+    <div class="field"><label>Weight (${wUnit()})</label><input id="as_weight" type="number" inputmode="decimal" value="${last.weight||0}"></div>
+    <div class="field"><label>Rest (s)</label><input id="as_rest" type="number" inputmode="numeric" value="${last.rest||90}"></div>
   </div>
   <label style="display:flex;align-items:center;gap:8px;margin:4px 2px 14px"><input type="checkbox" id="as_timer" checked style="width:auto"> Start rest timer after adding</label>
   <button class="btn" onclick="saveSet(${exIdx})">Add set</button>`;}
+function exOptionsSheet(ei){const ex=DB.activeWorkout.exercises[ei];const isTime=ex.type==='time';
+  return `<h2>Edit exercise</h2>
+  <div class="field" style="margin-top:10px"><label>Name</label><input id="ex_rename" value="${ex.name}" placeholder="Exercise name" onkeydown="if(event.key==='Enter')saveExName(${ei})"></div>
+  <button class="btn ghost" onclick="saveExName(${ei})">Save name</button>
+  <div class="ttl" style="margin:16px 4px 10px">Set type</div>
+  <div class="seg">
+    <button class="${!isTime?'on':''}" onclick="setExType(${ei},'reps')">🔢 Reps</button>
+    <button class="${isTime?'on':''}" onclick="setExType(${ei},'time')">⏱ Time</button>
+  </div>
+  <button class="btn rose" style="margin-top:8px" onclick="if(confirm('Remove this exercise?')){delExercise(${ei});closeSheet();}">Remove exercise</button>`;}
 function startWorkoutSheet(){const n='Workout '+(DB.workouts.length+1);
   return `<h2>Name your workout</h2>
   <div class="field" style="margin-top:12px"><input id="wk_name" value="${n}" placeholder="e.g. Push Day" onkeydown="if(event.key==='Enter')startWorkout(this.value)"></div>
@@ -959,7 +1019,7 @@ function startWorkoutSheet(){const n='Workout '+(DB.workouts.length+1);
 function wkDetailSheet(idx){const w=DB.workouts[idx];if(!w)return '<h2>Not found</h2>';
   let html=`<h2>${w.name}</h2><div class="muted" style="margin-bottom:12px">${new Date(w.date).toLocaleDateString()} · ${fmtWkDur(w.durationSec)} · ${w.exercises.length} exercises · ${wkSets(w)} sets</div>`;
   w.exercises.forEach(ex=>{html+=`<div class="card" style="padding:10px 16px"><div class="exhead"><span class="n">${ex.name}</span></div>`;
-    ex.sets.forEach((s,i)=>{html+=`<div class="setrow"><span class="sn">SET ${i+1}</span><span>${s.reps} reps</span><span style="color:var(--ink2)">${s.weight} ${wUnit()}</span></div>`;});
+    ex.sets.forEach((s,i)=>{const sd=s.duration!=null?`${s.duration}s`:`${s.reps} reps`;html+=`<div class="setrow"><span class="sn">SET ${i+1}</span><span>${sd}</span><span style="color:var(--ink2)">${s.weight} ${wUnit()}</span></div>`;});
     html+=`</div>`;});
   html+=`<button class="btn rose" onclick="delWorkout(${idx})">Delete workout</button>`;return html;}
 function delWorkout(idx){if(confirm('Delete this workout?')){DB.workouts.splice(idx,1);save();closeSheet();renderWork();}}
