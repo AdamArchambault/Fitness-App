@@ -188,6 +188,12 @@
   .extimer{font-size:38px;font-weight:850;letter-spacing:-.02em;font-variant-numeric:tabular-nums;text-align:center;padding:10px 0 4px;}
   .wkhist-toggle{background:transparent;border:0;color:var(--mint);font-weight:700;font-size:13.5px;padding:10px 2px;width:100%;text-align:left;}
   .extypebadge{font-size:11px;font-weight:700;border-radius:8px;padding:2px 8px;border:1px solid;}
+  .wkcompare{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:6px 0 0;border-top:1px solid var(--line);padding-top:8px;}
+  .wkcompare-col{min-width:0;}
+  .wkcompare-hdr{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+  .wkcompare-row{font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:5px;}
+  .wkcompare-row:last-child{border-bottom:none;}
+  .wkcompare-row .csn{font-size:10px;color:var(--ink3);font-weight:700;flex:none;width:30px;}
 
   video.scan{width:100%;border-radius:14px;background:#000;aspect-ratio:4/3;object-fit:cover;}
 
@@ -583,6 +589,8 @@ function wkSets(w){return w.exercises.reduce((s,e)=>s+e.sets.length,0);}
 function fmtWkDur(sec){const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60);return h>0?`${h}h ${m}m`:`${m}m`;}
 
 function renderWork(){
+  const rIco=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="M3 9v6M6 8v8M18 8v8M21 9v6M6 12h12"/></svg>`;
+  const tIco=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`;
   let html='';
   if(DB.activeWorkout){
     const aw=DB.activeWorkout;
@@ -603,25 +611,41 @@ function renderWork(){
         <div class="exhead">
           <span class="n">${ex.name}</span>
           <div style="display:flex;align-items:center;gap:6px">
-            <span class="extypebadge" style="color:${isTime?'var(--mint)':'var(--ink3)'};border-color:${isTime?'rgba(46,196,182,.4)':'var(--line2)'};display:inline-flex;align-items:center;gap:4px">${isTime?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Time':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="M3 9v6M6 8v8M18 8v8M21 9v6M6 12h12"/></svg>Reps'}</span>
+            <span class="extypebadge" style="color:${isTime?'var(--mint)':'var(--ink3)'};border-color:${isTime?'rgba(46,196,182,.4)':'var(--line2)'};display:inline-flex;align-items:center;gap:4px">${isTime?tIco+'Time':rIco+'Reps'}</span>
             <button class="x" onclick="openSheet('exoptions',${ei})">⋯</button>
           </div>
         </div>`;
       if(prev){
         const ps=prev.exercise.sets,pd=fmtDay(prev.workout.date),pt=prev.exercise.type==='time';
-        const pstr=ps.slice(0,3).map(s=>{
-          if(pt||s.duration!=null){const d=s.duration!=null?s.duration:s.reps;return `${d}s${s.rest?` · ${s.rest}s rest`:''}` ;}
-          return `${s.weight}${wUnit()} × ${s.reps}${s.rest?` · ${s.rest}s rest`:''}`;
-        }).join(' / ');
-        html+=`<div class="prevex">⟳ Previous · ${pd} — <b>${pstr}</b></div>`;
+        html+=`<div class="wkcompare">
+          <div class="wkcompare-col">
+            <div class="wkcompare-hdr">Previous · ${pd}</div>
+            ${ps.map((s,i)=>{
+              const d=pt||s.duration!=null?`${s.duration!=null?s.duration:s.reps}s`:`${s.weight}${wUnit()}×${s.reps}`;
+              const r=s.rest?`<span style="color:var(--ink3)"> ·${s.rest}s</span>`:'';
+              return `<div class="wkcompare-row"><span class="csn">S${i+1}</span><div>${d}${r}</div></div>`;
+            }).join('')}
+          </div>
+          <div class="wkcompare-col" style="border-left:1px solid var(--line);padding-left:9px">
+            <div class="wkcompare-hdr">Today</div>
+            ${ex.sets.map((s,si)=>{
+              const sd=s.duration!=null?`${s.duration}s`:`${s.weight}${wUnit()}×${s.reps}`;
+              const r=s.rest?`<span style="color:var(--ink3)"> ·${s.rest}s</span>`:'';
+              return `<div class="wkcompare-row"><span class="csn">S${si+1}</span><div style="display:flex;align-items:center;justify-content:space-between;flex:1;gap:2px">${sd}${r}<button class="x" style="font-size:14px" onclick="delSet(${ei},${si})">×</button></div></div>`;
+            }).join('')||`<div class="muted" style="font-size:12px;padding:3px 0">No sets yet.</div>`}
+            <button class="addset" style="font-size:12.5px;padding:7px 0" onclick="openSheet('addset',${ei})">+ Add set</button>
+          </div>
+        </div>`;
+      } else {
+        if(ex.sets.length){ex.sets.forEach((s,si)=>{
+          const setDisp=s.duration!=null?`${s.duration}s`:`${s.reps} reps`;
+          html+=`<div class="setrow"><span class="sn">SET ${si+1}</span>
+            <span>${setDisp}</span><span style="color:var(--ink2)">${s.weight} ${wUnit()}</span>
+            <span style="color:var(--ink3)">· ${s.rest}s rest</span><button class="x" onclick="delSet(${ei},${si})">×</button></div>`;
+        });}
+        else html+=`<div class="muted" style="padding:6px 2px">No sets yet.</div>`;
+        html+=`<button class="addset" onclick="openSheet('addset',${ei})">+ Add set</button>`;
       }
-      if(ex.sets.length){ex.sets.forEach((s,si)=>{
-        const setDisp=s.duration!=null?`${s.duration}s`:`${s.reps} reps`;
-        html+=`<div class="setrow"><span class="sn">SET ${si+1}</span>
-          <span>${setDisp}</span><span style="color:var(--ink2)">${s.weight} ${wUnit()}</span>
-          <span style="color:var(--ink3)">· ${s.rest}s rest</span><button class="x" onclick="delSet(${ei},${si})">×</button></div>`;
-      });}
-      else html+=`<div class="muted" style="padding:6px 2px">No sets yet.</div>`;
       if(isActive){
         html+=`<div class="extimer" id="restDisplay">${restEnd?fmtDur(Math.max(0,restEnd-Date.now())):'0:00'}</div>
           <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:2px 0 6px">
@@ -632,20 +656,26 @@ function renderWork(){
             <button class="btn ghost sm" style="width:auto;padding:6px 12px" onclick="skipRest()">Reset</button>
           </div>`;
       }
-      html+=`<button class="addset" onclick="openSheet('addset',${ei})">+ Add set</button></div>`;
+      html+=`</div>`;
     });
     html+=`<button class="btn ghost" onclick="openSheet('addex')">+ Add exercise</button>
       <button class="btn" style="margin-top:10px" onclick="finishWorkout()">Finish workout</button>
       <button class="btn rose" style="margin-top:10px" onclick="cancelWorkout()">Discard</button>`;
     if(DB.workouts.length){
-      html+=`<button class="wkhist-toggle" onclick="showWkHistory=!showWkHistory;renderWork()">${showWkHistory?'▲ Hide':'▼ Show'} past workouts (${DB.workouts.length})</button>`;
-      if(showWkHistory){
-        html+=`<div class="card">`+[...DB.workouts].reverse().map(w=>{
-          const ri=DB.workouts.indexOf(w);
-          return `<div class="li" onclick="openSheet('wkdetail',${ri})"><div class="dot">🏋️</div>
-            <div class="grow"><div class="t">${w.name}</div><div class="d">${w.exercises.length} exercises · ${wkSets(w)} sets</div></div>
-            <div class="r">${fmtDay(w.date)}<br>${fmtWkDur(w.durationSec)}</div></div>`;
-        }).join('')+`</div>`;
+      if(!showWkHistory){
+        html+=`<button class="wkhist-toggle" onclick="showWkHistory=true;renderWork()">▼ Past workouts (${DB.workouts.length})</button>`;
+      } else {
+        html+=`<div class="card" style="padding:0 0 4px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 8px;border-bottom:1px solid var(--line)">
+            <span style="font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--ink2)">PAST WORKOUTS</span>
+            <button onclick="showWkHistory=false;renderWork()" style="background:none;border:none;color:var(--ink3);font-size:20px;line-height:1;padding:0 2px">×</button>
+          </div>
+          <div style="padding:0 12px">`+[...DB.workouts].reverse().map(w=>{
+            const ri=DB.workouts.indexOf(w);
+            return `<div class="li" onclick="openSheet('wkdetail',${ri})"><div class="dot">🏋️</div>
+              <div class="grow"><div class="t">${w.name}</div><div class="d">${w.exercises.length} exercises · ${wkSets(w)} sets</div></div>
+              <div class="r">${fmtDay(w.date)}<br>${fmtWkDur(w.durationSec)}</div></div>`;
+          }).join('')+`</div></div>`;
       }
     }
   } else {
@@ -1011,19 +1041,24 @@ function addSetSheet(exIdx){const ex=DB.activeWorkout.exercises[exIdx];const isT
   <label style="display:flex;align-items:center;gap:8px;margin:4px 2px 14px"><input type="checkbox" id="as_timer" checked style="width:auto"> Start rest timer after adding</label>
   <button class="btn" onclick="saveSet(${exIdx})">Add set</button>`;}
 function exOptionsSheet(ei){const ex=DB.activeWorkout.exercises[ei];const isTime=ex.type==='time';
+  const rIco=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle;margin-right:4px"><path d="M3 9v6M6 8v8M18 8v8M21 9v6M6 12h12"/></svg>`;
+  const tIco=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`;
   return `<h2>Edit exercise</h2>
   <div class="field" style="margin-top:10px"><label>Name</label><input id="ex_rename" value="${ex.name}" placeholder="Exercise name" onkeydown="if(event.key==='Enter')saveExName(${ei})"></div>
   <button class="btn ghost" onclick="saveExName(${ei})">Save name</button>
   <div class="ttl" style="margin:16px 4px 10px">Set type</div>
   <div class="seg">
-    <button class="${!isTime?'on':''}" onclick="setExType(${ei},'reps')">🔢 Reps</button>
-    <button class="${isTime?'on':''}" onclick="setExType(${ei},'time')">⏱ Time</button>
+    <button class="${!isTime?'on':''}" onclick="setExType(${ei},'reps')">${rIco}Reps</button>
+    <button class="${isTime?'on':''}" onclick="setExType(${ei},'time')">${tIco}Time</button>
   </div>
   <button class="btn rose" style="margin-top:8px" onclick="if(confirm('Remove this exercise?')){delExercise(${ei});closeSheet();}">Remove exercise</button>`;}
 function startWorkoutSheet(){const n='Workout '+(DB.workouts.length+1);
+  const recent=[...new Set([...DB.workouts].reverse().map(w=>w.name))].slice(0,8);
+  const recentHtml=recent.length?`<label style="margin-bottom:8px">Recent workouts</label><div class="chips" style="flex-wrap:wrap;overflow:visible;margin-bottom:4px">${recent.map(nm=>`<button class="chip" onclick="startWorkout('${nm}')">${nm}</button>`).join('')}</div>`:'';
   return `<h2>Name your workout</h2>
   <div class="field" style="margin-top:12px"><input id="wk_name" value="${n}" placeholder="e.g. Push Day" onkeydown="if(event.key==='Enter')startWorkout(this.value)"></div>
-  <button class="btn" onclick="startWorkout(document.getElementById('wk_name').value)">Begin workout</button>`;}
+  ${recentHtml}
+  <button class="btn" style="margin-top:10px" onclick="startWorkout(document.getElementById('wk_name').value)">Begin workout</button>`;}
 function wkDetailSheet(idx){const w=DB.workouts[idx];if(!w)return '<h2>Not found</h2>';
   let html=`<h2>${w.name}</h2><div class="muted" style="margin-bottom:12px">${new Date(w.date).toLocaleDateString()} · ${fmtWkDur(w.durationSec)} · ${w.exercises.length} exercises · ${wkSets(w)} sets</div>`;
   w.exercises.forEach(ex=>{html+=`<div class="card" style="padding:10px 16px"><div class="exhead"><span class="n">${ex.name}</span></div>`;
