@@ -580,7 +580,6 @@ function addRest(s){if(restEnd)restEnd+=s*1000;tick();}
 function skipRest(){restEnd=null;const el=document.getElementById('restDisplay');if(el)el.textContent='0:00';}
 function getRecentExercises(limit){limit=limit||15;const seen=new Set(),result=[];[...DB.workouts].reverse().forEach(w=>w.exercises.forEach(e=>{if(!seen.has(e.name)){seen.add(e.name);result.push(e.name);}}));return result.slice(0,limit);}
 function getPrevExercise(name){const lc=name.toLowerCase();for(let i=DB.workouts.length-1;i>=0;i--){const ex=DB.workouts[i].exercises.find(e=>e.name.toLowerCase()===lc);if(ex&&ex.sets.length)return{workout:DB.workouts[i],exercise:ex};}return null;}
-function getExercisePB(name){const lc=name.toLowerCase();let mx=0;DB.workouts.forEach(w=>w.exercises.forEach(e=>{if(e.name.toLowerCase()===lc)e.sets.forEach(s=>{if((s.weight||0)>mx)mx=s.weight;});}));if(DB.activeWorkout)DB.activeWorkout.exercises.forEach(e=>{if(e.name.toLowerCase()===lc)e.sets.forEach(s=>{if((s.weight||0)>mx)mx=s.weight;});});return mx;}
 function weekStart(){const d=new Date();const day=d.getDay();const diff=d.getDate()-(day===0?6:day-1);return new Date(d.getFullYear(),d.getMonth(),diff,0,0,0,0);}
 function getWorkoutTypeExercises(wkName){const n=(wkName||'').toLowerCase();let type=null;if(n.includes('push'))type='push';else if(n.includes('pull'))type='pull';else if(n.includes('leg'))type='leg';if(!type)return[];const seen=new Set(),result=[];[...DB.workouts].reverse().forEach(w=>{const wn=(w.name||'').toLowerCase();if(wn.includes(type))w.exercises.forEach(e=>{if(!seen.has(e.name)){seen.add(e.name);result.push(e.name);}});});return result.slice(0,12);}
 
@@ -620,7 +619,7 @@ function renderWork(){
       const isActive=ei===timerIdx;
       const isTime=ex.type==='time';
       const prev=getPrevExercise(ex.name);
-      const pb=getExercisePB(ex.name);
+      const prevVol=prev?prev.exercise.sets.reduce((s,set)=>s+(set.weight||0)*(set.reps||0),0):0;
       const vol=ex.sets.reduce((s,set)=>s+(set.weight||0)*(set.reps||0),0);
       html+=`<div class="card" style="padding:10px 16px 4px">
         <div class="exhead">
@@ -630,9 +629,9 @@ function renderWork(){
             <button class="x" onclick="openSheet('exoptions',${ei})">⋯</button>
           </div>
         </div>
-        ${!isTime&&(pb>0||vol>0)?`<div style="display:flex;align-items:center;gap:10px;padding:2px 2px 5px;font-size:12px;color:var(--ink3)">
-          ${pb>0?`<span>PB <b style="color:var(--ink2)">${pb} ${wUnit()}</b></span>`:''}
-          ${pb>0&&vol>0?`<span style="color:var(--line2)">|</span>`:''}
+        ${!isTime&&(prevVol>0||vol>0)?`<div style="display:flex;align-items:center;gap:10px;padding:2px 2px 5px;font-size:12px;color:var(--ink3)">
+          ${prevVol>0?`<span>Last <b style="color:var(--ink2)">${Math.round(prevVol).toLocaleString()} ${wUnit()} vol</b></span>`:''}
+          ${prevVol>0&&vol>0?`<span style="color:var(--line2)">|</span>`:''}
           ${vol>0?`<span>Today <b style="color:var(--mint)">${Math.round(vol).toLocaleString()} ${wUnit()} vol</b></span>`:''}
         </div>`:''}`;
 
