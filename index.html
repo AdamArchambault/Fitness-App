@@ -113,7 +113,9 @@
   .sheet{position:fixed;left:0;right:0;bottom:0;z-index:70;max-width:480px;margin:0 auto;background:var(--bg2);border-radius:26px 26px 0 0;border:1px solid var(--line2);border-bottom:0;
     padding:8px 18px calc(20px + var(--safe-b));transform:translateY(110%);transition:transform .32s cubic-bezier(.3,.8,.3,1);max-height:92vh;overflow:auto;}
   .sheet.on{transform:none;}
-  .grab{width:38px;height:5px;border-radius:3px;background:var(--line2);margin:8px auto 14px;}
+  .grab{display:none;}
+  .sheet-bar{display:flex;align-items:center;justify-content:flex-end;padding:10px 14px 2px;flex:none;}
+  .sheet-x{width:32px;height:32px;border-radius:50%;border:1px solid var(--line2);background:var(--card2);color:var(--ink2);font-size:20px;line-height:1;display:grid;place-items:center;cursor:pointer;}
   .sheet h2{font-size:21px;font-weight:800;margin:0 0 4px;}
 
   .chips{display:flex;gap:8px;overflow:auto;padding:2px 0 12px;scrollbar-width:none;}
@@ -239,7 +241,10 @@
 </div>
 
 <div class="scrim" id="scrim" onclick="closeSheet()"></div>
-<div class="sheet" id="sheet"><div class="grab"></div><div id="sheetBody"></div></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-bar"><button class="sheet-x" onclick="closeSheet()">×</button></div>
+  <div id="sheetBody"></div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1058,7 +1063,7 @@ function addSetSheet(exIdx){const ex=DB.activeWorkout.exercises[exIdx];const isT
 function exOptionsSheet(ei){const ex=DB.activeWorkout.exercises[ei];const isTime=ex.type==='time';
   const rIco=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle;margin-right:4px"><path d="M3 9v6M6 8v8M18 8v8M21 9v6M6 12h12"/></svg>`;
   const tIco=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`;
-  return `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><h2 style="margin:0">Edit exercise</h2><button onclick="closeSheet()" style="background:none;border:none;color:var(--ink3);font-size:26px;line-height:1;padding:2px 4px">×</button></div>
+  return `<h2>Edit exercise</h2>
   <div class="field" style="margin-top:10px"><label>Name</label><input id="ex_rename" value="${ex.name}" placeholder="Exercise name" onkeydown="if(event.key==='Enter')saveExName(${ei})"></div>
   <button class="btn ghost" onclick="saveExName(${ei})">Save name</button>
   <div class="ttl" style="margin:16px 4px 10px">Set type</div>
