@@ -261,6 +261,8 @@ function ic(n,sz,c){const z=sz||22;const P={
   weight:'<path d="M7 8h10l1.4 11H5.6L7 8zM9 8a3 3 0 016 0"/>',
   sleep:'<path d="M21 12.8A8 8 0 1111.2 3a6 6 0 109.8 9.8z"/>',
   tools:'<path d="M14.5 6.5a3.5 3.5 0 01-4.4 4.4L4 17l3 3 6.1-6.1a3.5 3.5 0 014.4-4.4l-2.5 2.5-2-2 2.5-2.5z"/>',
+  fire:'<path d="M12 2c0 0-5.5 5.5-5.5 11a5.5 5.5 0 0011 0C17.5 7.5 12 2 12 2z"/>',
+  trend:'<polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/>',
   barcode:'<path d="M4 5v14M8 5v14M12 5v14M16 5v14M20 5v14"/>',
   search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/>',
   edit:'<path d="M4 20h16M14 4l4 4L8 18l-5 1 1-5L14 4z"/>',
@@ -411,7 +413,7 @@ function weightTrend(){if(DB.weights.length<2)return 'first entry';const a=DB.we
 function insightsCard(){
   const w=DB.weights,tot=dayTotals(todayKey()),nwk=DB.workouts.length;
   const body=`Weight has changed by <b style="color:var(--ink)">${w.length>=2?(w[w.length-1].kg-w[0].kg).toFixed(1):'0'} kg</b> across your log, you've taken in <b style="color:var(--ink)">${tot.p}g protein today</b>, and completed <b style="color:var(--ink)">${nwk} workout${nwk===1?'':'s'}</b>. Pairing protein with consistent lifting supports lean-mass retention — keep the streak going.`;
-  return `<div class="card"><div class="rowflex"><div class="dot" style="background:rgba(46,196,182,.14)">✨</div><div class="grow muted">${body}</div></div></div>`;
+  return `<div class="card"><div class="rowflex"><div class="dot" style="background:rgba(46,196,182,.14);overflow:hidden">${ic('bot',20,'var(--mint)')}</div><div class="grow muted">${body}</div></div></div>`;
 }
 function addWater(oz){DB.water[todayKey()]=(DB.water[todayKey()]||0)+oz;save();const on=document.querySelector('.page.on');if(on&&on.id==='p-home')renderHome();else renderFood();}
 
@@ -565,6 +567,8 @@ function addRest(s){if(restEnd)restEnd+=s*1000;tick();}
 function skipRest(){restEnd=null;const el=document.getElementById('restDisplay');if(el)el.textContent='0:00';}
 function getRecentExercises(limit){limit=limit||15;const seen=new Set(),result=[];[...DB.workouts].reverse().forEach(w=>w.exercises.forEach(e=>{if(!seen.has(e.name)){seen.add(e.name);result.push(e.name);}}));return result.slice(0,limit);}
 function getPrevExercise(name){const lc=name.toLowerCase();for(let i=DB.workouts.length-1;i>=0;i--){const ex=DB.workouts[i].exercises.find(e=>e.name.toLowerCase()===lc);if(ex&&ex.sets.length)return{workout:DB.workouts[i],exercise:ex};}return null;}
+function weekStart(){const d=new Date();const day=d.getDay();const diff=d.getDate()-(day===0?6:day-1);return new Date(d.getFullYear(),d.getMonth(),diff,0,0,0,0);}
+function getWorkoutTypeExercises(wkName){const n=(wkName||'').toLowerCase();let type=null;if(n.includes('push'))type='push';else if(n.includes('pull'))type='pull';else if(n.includes('leg'))type='leg';if(!type)return[];const seen=new Set(),result=[];[...DB.workouts].reverse().forEach(w=>{const wn=(w.name||'').toLowerCase();if(wn.includes(type))w.exercises.forEach(e=>{if(!seen.has(e.name)){seen.add(e.name);result.push(e.name);}});});return result.slice(0,12);}
 
 function startWorkout(name){DB.activeWorkout={start:Date.now(),name:name||('Workout '+(DB.workouts.length+1)),exercises:[]};save();startWkTimer();closeSheet();go('work');}
 function setWkName(val){if(DB.activeWorkout){DB.activeWorkout.name=val;save();}}
@@ -667,7 +671,7 @@ function renderWork(){
           </div>
           <div style="padding:0 12px">`+[...DB.workouts].reverse().map(w=>{
             const ri=DB.workouts.indexOf(w);
-            return `<div class="li" onclick="openSheet('wkdetail',${ri})"><div class="dot">🏋️</div>
+            return `<div class="li" onclick="openSheet('wkdetail',${ri})"><div class="dot" style="overflow:hidden">${ic('lift',20,'var(--ink2)')}</div>
               <div class="grow"><div class="t">${w.name}</div><div class="d">${w.exercises.length} exercises · ${wkSets(w)} sets</div></div>
               <div class="r">${fmtDay(w.date)}<br>${fmtWkDur(w.durationSec)}</div></div>`;
           }).join('')+`</div></div>`;
@@ -675,14 +679,18 @@ function renderWork(){
     }
   } else {
     html+=`<button class="btn" onclick="openSheet('startworkout')">＋ Start workout</button>`;
-    html+=`<div class="ttl">History (${DB.workouts.length})</div>`;
-    if(DB.workouts.length){
-      html+=`<div class="card">`+[...DB.workouts].reverse().map(w=>{
-        const realIdx=DB.workouts.indexOf(w);
-        return `<div class="li" onclick="openSheet('wkdetail',${realIdx})"><div class="dot">🏋️</div>
-          <div class="grow"><div class="t">${w.name}</div><div class="d">${w.exercises.length} exercises · ${wkSets(w)} sets</div></div>
-          <div class="r">${fmtDay(w.date)}<br>${fmtWkDur(w.durationSec)}</div></div>`;}).join('')+`</div>`;
-    } else html+=`<div class="empty">No workouts yet.<br>Start one to track exercises, sets, reps & rest.</div>`;
+    const ws=weekStart();
+    const allRev=[...DB.workouts].reverse();
+    const thisWeek=allRev.filter(w=>new Date(w.date)>=ws);
+    const prevWeeks=allRev.filter(w=>new Date(w.date)<ws);
+    const mkLi=w=>{const ri=DB.workouts.indexOf(w);return `<div class="li" onclick="openSheet('wkdetail',${ri})"><div class="dot" style="overflow:hidden">${ic('lift',20,'var(--ink2)')}</div><div class="grow"><div class="t">${w.name}</div><div class="d">${w.exercises.length} exercises · ${wkSets(w)} sets</div></div><div class="r">${fmtDay(w.date)}<br>${fmtWkDur(w.durationSec)}</div></div>`;};
+    html+=`<div class="ttl">This week (${thisWeek.length})</div>`;
+    if(thisWeek.length){html+=`<div class="card">${thisWeek.map(mkLi).join('')}</div>`;}
+    else html+=`<div class="empty">No workouts this week.<br>Tap above to start tracking.</div>`;
+    if(prevWeeks.length){
+      if(!showWkHistory){html+=`<button class="wkhist-toggle" onclick="showWkHistory=true;renderWork()">▼ Previous weeks (${prevWeeks.length})</button>`;}
+      else{html+=`<div class="ttl"><span>Previous weeks</span><button onclick="showWkHistory=false;renderWork()" style="background:none;border:none;color:var(--ink3);font-size:18px;line-height:1;padding:0 4px">×</button></div><div class="card">${prevWeeks.map(mkLi).join('')}</div>`;}
+    }
   }
   document.getElementById('p-work').innerHTML=html;
   tick();
@@ -780,9 +788,9 @@ function pickSheet(){
     <button class="card tap" style="text-align:center;padding:20px 8px" onclick="openSheet('barcode','${defaultMeal()}')"><div style="display:flex;justify-content:center">${ic('barcode',28,'var(--mint)')}</div><div style="font-weight:700;margin-top:8px">Scan barcode</div></button>
   </div>
   <div class="chips" style="padding-top:12px">
-    <button class="chip" onclick="addWater(8);closeSheet()">💧 +8 oz</button>
-    <button class="chip" onclick="openSheet('weight')">⚖️ Weight</button>
-    <button class="chip" onclick="openSheet('sleep')">🌙 Sleep</button>
+    <button class="chip" onclick="addWater(8);closeSheet()" style="display:inline-flex;align-items:center;gap:5px">${ic('water',14,'var(--mint)')} +8 oz</button>
+    <button class="chip" onclick="openSheet('weight')" style="display:inline-flex;align-items:center;gap:5px">${ic('weight',14,'var(--ink2)')} Weight</button>
+    <button class="chip" onclick="openSheet('sleep')" style="display:inline-flex;align-items:center;gap:5px">${ic('sleep',14,'var(--ink2)')} Sleep</button>
   </div>`;
 }
 function logSheet(){
@@ -817,7 +825,7 @@ function saveWeight(){let val=parseFloat(v('wt_v'));if(!val)return;const kg=uImp
   if(i>=0)DB.weights[i]=e;else DB.weights.push(e);save();closeSheet();go('body');toast('Weight saved');}
 function sleepSheet(){return `<h2>Log sleep</h2><div class="two" style="margin-top:12px">
   <div class="field"><label>Hours slept</label><input id="sl_h" type="number" inputmode="decimal" placeholder="7.5"></div>
-  <div class="field"><label>Quality 1–5</label><input id="sl_q" type="number" min="1" max="5" placeholder="4"></div></div><button class="btn" onclick="saveSleep()">Save</button>`;}
+  <div class="field"><label>Quality 1–100</label><input id="sl_q" type="number" min="1" max="100" placeholder="75"></div></div><button class="btn" onclick="saveSleep()">Save</button>`;}
 function saveSleep(){const h=parseFloat(v('sl_h'));if(!h)return;DB.sleep.push({date:todayKey(),hours:h,quality:parseFloat(v('sl_q'))||0});save();closeSheet();go('body');toast('Sleep saved');}
 function renderBody(){
   const el=document.getElementById('p-body');if(!el)return;
@@ -844,7 +852,7 @@ function renderBody(){
         const delta=prev?(dispWeight(e.kg)-dispWeight(prev.kg)):null;
         const col=delta===null?'var(--ink2)':delta<0?'var(--mint)':delta>0?'var(--rose)':'var(--ink2)';
         const arrow=delta===null?'':delta<0?'▼ ':delta>0?'▲ +':'→ ';
-        return `<div class="li"><div class="dot">⚖️</div>
+        return `<div class="li"><div class="dot" style="overflow:hidden">${ic('weight',20,'var(--ink2)')}</div>
           <div class="grow"><div class="t">${dispWeight(e.kg)} ${wUnit()}</div><div class="d">${e.date}</div></div>
           <div class="r" style="color:${col}">${delta!==null?arrow+Math.abs(delta).toFixed(1)+' '+wUnit():''}</div></div>`;
       }).join('');
@@ -867,12 +875,11 @@ function renderBody(){
     if(entries.length){
       html+=`<div class="card">`;
       html+=entries.slice(0,60).map(e=>{
-        const stars=e.quality?'★'.repeat(e.quality)+'☆'.repeat(5-e.quality):'';
         const col=e.hours>=7?'var(--mint)':e.hours>=6?'var(--amber)':'var(--rose)';
         const lbl=e.hours>=7?'Good':e.hours>=6?'Fair':'Low';
-        return `<div class="li"><div class="dot">🌙</div>
-          <div class="grow"><div class="t">${e.hours} hrs${stars?' · <span style="color:var(--amber)">'+stars+'</span>':''}</div>
-          <div class="d">${e.date}${e.quality?' · Quality '+e.quality+'/5':''}</div></div>
+        return `<div class="li"><div class="dot" style="overflow:hidden">${ic('sleep',20,'var(--ink2)')}</div>
+          <div class="grow"><div class="t">${e.hours} hrs</div>
+          <div class="d">${e.date}${e.quality?' · Quality '+e.quality+'/100':''}</div></div>
           <div class="r" style="color:${col}">${lbl}</div></div>`;
       }).join('');
       html+=`</div>`;
@@ -1014,12 +1021,17 @@ function scanaddSheet(meal){const sc=window._scanned||{n:'Item',s:'1 serving',ca
 
 /* workout sheets */
 function addExSheet(){
-  const recent=getRecentExercises(12);
-  const recentHtml=recent.length?`<label style="margin-bottom:8px">Recently used</label><div class="chips" style="flex-wrap:wrap;overflow:visible;margin-bottom:14px">${recent.map(l=>`<button class="chip" onclick="addExercise('${l}')">${l}</button>`).join('')}</div>`:'';
+  const wkName=DB.activeWorkout?DB.activeWorkout.name:'';
+  const wkN=wkName.toLowerCase();
+  const wkType=wkN.includes('push')?'Push':wkN.includes('pull')?'Pull':wkN.includes('leg')?'Leg':null;
+  const typeEx=getWorkoutTypeExercises(wkName);
+  const recent=getRecentExercises(12).filter(l=>!typeEx.includes(l));
+  const typeHtml=typeEx.length?`<label style="margin-bottom:8px">From your ${wkType} day workouts</label><div class="chips" style="flex-wrap:wrap;overflow:visible;margin-bottom:14px">${typeEx.map(l=>`<button class="chip" onclick="addExercise('${l.replace(/'/g,"\\'")}')">${l}</button>`).join('')}</div>`:'';
+  const recentHtml=recent.length?`<label style="margin-bottom:8px">Recently used</label><div class="chips" style="flex-wrap:wrap;overflow:visible;margin-bottom:14px">${recent.slice(0,10).map(l=>`<button class="chip" onclick="addExercise('${l.replace(/'/g,"\\'")}')">${l}</button>`).join('')}</div>`:'';
   const defaultLifts=['Bench Press','Back Squat','Deadlift','Overhead Press','Pull-up','Barbell Row','Lat Pulldown','Romanian Deadlift'];
   return `<h2>Add exercise</h2>
   <div class="field" style="margin-top:10px"><input id="ex_name" placeholder="Search all exercises…" oninput="filterExList(this.value)" onkeydown="if(event.key==='Enter')addExercise(this.value)"></div>
-  ${recentHtml}<label style="margin-bottom:8px">Common <span style="color:var(--ink3);font-weight:500;font-size:11px">· search above to see all</span></label>
+  ${typeHtml}${recentHtml}<label style="margin-bottom:8px">Common <span style="color:var(--ink3);font-weight:500;font-size:11px">· search above to see all</span></label>
   <div id="exList" class="chips" style="flex-wrap:wrap;overflow:visible">${defaultLifts.map(l=>`<button class="chip" onclick="addExercise('${l}')">${l}</button>`).join('')}</div>
   <button class="btn" style="margin-top:12px" onclick="addExercise(document.getElementById('ex_name').value)">Add</button>`;}
 function filterExList(q){const box=document.getElementById('exList');if(!box)return;q=(q||'').toLowerCase().trim();const m=q?LIFTS.filter(l=>l.toLowerCase().includes(q)):['Bench Press','Back Squat','Deadlift','Overhead Press','Pull-up','Barbell Row','Lat Pulldown','Romanian Deadlift'];box.innerHTML=m.map(l=>`<button class="chip" onclick="addExercise('${l}')">${l}</button>`).join('');}
@@ -1038,7 +1050,7 @@ function addSetSheet(exIdx){const ex=DB.activeWorkout.exercises[exIdx];const isT
 function exOptionsSheet(ei){const ex=DB.activeWorkout.exercises[ei];const isTime=ex.type==='time';
   const rIco=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle;margin-right:4px"><path d="M3 9v6M6 8v8M18 8v8M21 9v6M6 12h12"/></svg>`;
   const tIco=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`;
-  return `<h2>Edit exercise</h2>
+  return `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><h2 style="margin:0">Edit exercise</h2><button onclick="closeSheet()" style="background:none;border:none;color:var(--ink3);font-size:26px;line-height:1;padding:2px 4px">×</button></div>
   <div class="field" style="margin-top:10px"><label>Name</label><input id="ex_rename" value="${ex.name}" placeholder="Exercise name" onkeydown="if(event.key==='Enter')saveExName(${ei})"></div>
   <button class="btn ghost" onclick="saveExName(${ei})">Save name</button>
   <div class="ttl" style="margin:16px 4px 10px">Set type</div>
@@ -1057,7 +1069,7 @@ function startWorkoutSheet(){const n='Workout '+(DB.workouts.length+1);
 function wkDetailSheet(idx){const w=DB.workouts[idx];if(!w)return '<h2>Not found</h2>';
   let html=`<h2>${w.name}</h2><div class="muted" style="margin-bottom:12px">${new Date(w.date).toLocaleDateString()} · ${fmtWkDur(w.durationSec)} · ${w.exercises.length} exercises · ${wkSets(w)} sets</div>`;
   w.exercises.forEach(ex=>{html+=`<div class="card" style="padding:10px 16px"><div class="exhead"><span class="n">${ex.name}</span></div>`;
-    ex.sets.forEach((s,i)=>{const sd=s.duration!=null?`${s.duration}s`:`${s.reps} reps`;html+=`<div class="setrow"><span class="sn">SET ${i+1}</span><span>${sd}</span><span style="color:var(--ink2)">${s.weight} ${wUnit()}</span></div>`;});
+    ex.sets.forEach((s,i)=>{const sd=s.duration!=null?`${s.duration}s`:`${s.reps} reps`;const rStr=s.rest?`<span style="color:var(--ink3)"> · ${s.rest}s rest</span>`:'';html+=`<div class="setrow"><span class="sn">SET ${i+1}</span><span>${sd}</span><span style="color:var(--ink2)">${s.weight} ${wUnit()}</span>${rStr}</div>`;});
     html+=`</div>`;});
   html+=`<button class="btn rose" onclick="delWorkout(${idx})">Delete workout</button>`;return html;}
 function delWorkout(idx){if(confirm('Delete this workout?')){DB.workouts.splice(idx,1);save();closeSheet();renderWork();}}
@@ -1065,7 +1077,9 @@ function delWorkout(idx){if(confirm('Delete this workout?')){DB.workouts.splice(
 /* settings */
 function settingsSheet(){
   const themes=[['mint','#2EC4B6'],['ocean','#5db7f0'],['violet','#b388f0'],['sun','#f0b75e']];
-  const badges=[['🔥','7-day streak',streak()>=7],['💧','Hydration',Object.values(DB.water).some(x=>x>=waterGoal)],['📈','First weigh-in',DB.weights.length>0],['💉','10 doses',DB.doses.length>=10],['🍎','Logged a meal',Object.values(DB.meals).some(d=>Object.values(d).some(a=>a.length))],['🏋️','First workout',DB.workouts.length>0]];
+  const bi=(name,got)=>ic(name,26,got?'var(--mint)':'var(--ink3)');
+  const s7=streak()>=7,hydOk=Object.values(DB.water).some(x=>x>=waterGoal),hasW=DB.weights.length>0,has10d=DB.doses.length>=10,hasMeal=Object.values(DB.meals).some(d=>Object.values(d).some(a=>a.length)),hasWk=DB.workouts.length>0;
+  const badges=[[bi('fire',s7),'7-day streak',s7],[bi('water',hydOk),'Hydration',hydOk],[bi('trend',hasW),'First weigh-in',hasW],[bi('dose',has10d),'10 doses',has10d],[bi('food',hasMeal),'Logged a meal',hasMeal],[bi('lift',hasWk),'First workout',hasWk]];
   return `<h2>Settings</h2>
   <div class="field" style="margin-top:14px"><label>Your name</label><input id="set_name" value="${DB.profile.name}" placeholder="Name" oninput="DB.profile.name=this.value;save()"></div>
   <div class="field"><label>Units</label><select onchange="DB.units=this.value;save();toast('Units: '+this.value);renderFood()"><option value="imperial" ${uImperial()?'selected':''}>Imperial (lb, ft/in)</option><option value="metric" ${!uImperial()?'selected':''}>Metric (kg, cm)</option></select></div>
