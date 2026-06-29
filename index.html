@@ -422,6 +422,7 @@ function renderHome(){
         <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(8)">+8 oz</button>
         <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(16)">+16 oz</button>
         <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWaterCustom()">+ Custom</button>
+        <button class="btn ghost sm" style="width:auto;padding:8px 14px;color:var(--rose);border-color:var(--rose)" onclick="removeWater()">− Remove</button>
       </div></div></div>
   </div>`;
 
@@ -446,6 +447,7 @@ function insightsCard(){
 }
 function addWater(oz){DB.water[todayKey()]=(DB.water[todayKey()]||0)+oz;save();const on=document.querySelector('.page.on');if(on&&on.id==='p-home')renderHome();else renderFood();}
 function addWaterCustom(){const val=prompt('How many oz?');if(val===null)return;const oz=parseFloat(val);if(!oz||oz<=0)return;addWater(oz);}
+function removeWater(){const cur=DB.water[todayKey()]||0;const val=prompt('Remove how many oz? (current: '+cur+' oz)');if(val===null)return;const oz=parseFloat(val);if(!oz||oz<=0)return;DB.water[todayKey()]=Math.max(0,cur-oz);save();const on=document.querySelector('.page.on');if(on&&on.id==='p-home')renderHome();else renderFood();}
 
 /* INVENTORY */
 let invView='stack';
@@ -514,6 +516,7 @@ function renderFood(){
         <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(8)">+8 oz</button>
         <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(16)">+16 oz</button>
         <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWaterCustom()">+ Custom</button>
+        <button class="btn ghost sm" style="width:auto;padding:8px 14px;color:var(--rose);border-color:var(--rose)" onclick="removeWater()">− Remove</button>
         <button onclick="editWaterGoal()" style="background:transparent;border:0;color:var(--mint);font-weight:700;font-size:14px">Goal</button>
       </div>`:''}</div></div>
   </div>`;
