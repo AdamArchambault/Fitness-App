@@ -421,8 +421,10 @@ function renderHome(){
       <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(8)">+8 oz</button>
         <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(16)">+16 oz</button>
-        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWaterCustom()">+ Custom</button>
-        <button class="btn ghost sm" style="width:auto;padding:8px 14px;color:var(--rose);border-color:var(--rose)" onclick="removeWater()">− Remove</button>
+        <div style="display:flex;gap:4px">
+          <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWaterCustom()">+ Custom</button>
+          <button class="btn ghost sm" style="width:auto;padding:8px 14px;color:var(--rose);border-color:var(--rose)" onclick="removeWater()">− Remove</button>
+        </div>
       </div></div></div>
   </div>`;
 
@@ -515,8 +517,10 @@ function renderFood(){
       ${isToday?`<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(8)">+8 oz</button>
         <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(16)">+16 oz</button>
-        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWaterCustom()">+ Custom</button>
-        <button class="btn ghost sm" style="width:auto;padding:8px 14px;color:var(--rose);border-color:var(--rose)" onclick="removeWater()">− Remove</button>
+        <div style="display:flex;gap:4px">
+          <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWaterCustom()">+ Custom</button>
+          <button class="btn ghost sm" style="width:auto;padding:8px 14px;color:var(--rose);border-color:var(--rose)" onclick="removeWater()">− Remove</button>
+        </div>
         <button onclick="editWaterGoal()" style="background:transparent;border:0;color:var(--mint);font-weight:700;font-size:14px">Goal</button>
       </div>`:''}</div></div>
   </div>`;
