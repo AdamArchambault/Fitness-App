@@ -494,10 +494,10 @@ function renderFood(){
     <div class="rowflex"><div class="ring" style="--p:${wp}"><i>${wp}%</i></div><div class="grow">
       <div class="t" style="font-weight:700;font-size:15px">Hydration</div>
       <div class="muted">${water} / ${waterGoal} oz${isToday?' today':''}</div>
-      ${isToday?`<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+      ${isToday?`<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(8)">+8 oz</button>
         <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(16)">+16 oz</button>
-        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="editWaterGoal()">Goal</button>
+        <button onclick="editWaterGoal()" style="background:transparent;border:0;color:var(--mint);font-weight:700;font-size:14px">Goal</button>
       </div>`:''}</div></div>
   </div>`;
   html+=`<div class="kcalcard">
@@ -528,10 +528,10 @@ function delFood(meal,idx){const m=getDayMeals(todayKey());m[meal].splice(idx,1)
 function addFood(idx,meal,servings){const f=CUR[idx];if(!f)return;const s=servings||1,m=getDayMeals(todayKey());
   m[meal].push({name:f.n,serv:f.s,q:s,cal:Math.round(f.cal*s),p:+(f.p*s).toFixed(1),c:+(f.c*s).toFixed(1),f:+(f.f*s).toFixed(1)});
   save();closeSheet();go('food');toast(f.n+' added');}
-function addCustomFood(meal){const name=v('cf_name')||'Custom food';
+function addCustomFood(meal){const name=v('cf_name')||'Custom food';const s=parseFloat(v('cf_serv'))||1;
   const food={n:name,s:'1 serving',cal:Math.round(+v('cf_cal')||0),p:+v('cf_p')||0,c:+v('cf_c')||0,f:+v('cf_f')||0};
   const m=getDayMeals(todayKey());
-  m[meal].push({name:food.n,serv:food.s,q:1,cal:food.cal,p:food.p,c:food.c,f:food.f});
+  m[meal].push({name:food.n,serv:food.s,q:s,cal:Math.round(food.cal*s),p:+(food.p*s).toFixed(1),c:+(food.c*s).toFixed(1),f:+(food.f*s).toFixed(1)});
   DB.customFoods=DB.customFoods||[];
   if(!DB.customFoods.some(x=>x.n.toLowerCase()===food.n.toLowerCase()))DB.customFoods.push(food);
   save();closeSheet();go('food');toast('Added to '+MEAL_LBL[meal]);}
@@ -985,13 +985,20 @@ function foodItemSheet(idx,meal){const f=CUR[idx];if(!f)return'';
 function stepServ(d){const el=document.getElementById('fi_serv');el.value=Math.max(0.5,(parseFloat(el.value)||1)+d);el.dispatchEvent(new Event('input'));}
 function calcServ(idx){const f=CUR[idx];if(!f)return;const s=parseFloat(v('fi_serv'))||1,o=document.getElementById('fi_out');if(!o)return;
   o.innerHTML=`<div class="big">${Math.round(f.cal*s)} <span style="font-size:16px">kcal</span></div><div class="muted">${(f.p*s).toFixed(1)}g protein · ${(f.c*s).toFixed(1)}g carbs · ${(f.f*s).toFixed(1)}g fat</div>`;}
-function customFoodSheet(meal){return `<h2>Custom food</h2><div class="muted" style="margin-bottom:12px">Quick-add an item not in the database.</div>
+function customFoodSheet(meal){return `<h2>Custom food</h2><div class="muted" style="margin-bottom:12px">Quick-add an item not in the database. Macros are per serving.</div>
   <div class="field"><label>Name</label><input id="cf_name" placeholder="e.g. Homemade smoothie"></div>
-  <div class="two"><div class="field"><label>Calories</label><input id="cf_cal" type="number" inputmode="decimal"></div>
-    <div class="field"><label>Protein (g)</label><input id="cf_p" type="number" inputmode="decimal"></div></div>
-  <div class="two"><div class="field"><label>Carbs (g)</label><input id="cf_c" type="number" inputmode="decimal"></div>
-    <div class="field"><label>Fat (g)</label><input id="cf_f" type="number" inputmode="decimal"></div></div>
-  <button class="btn" onclick="addCustomFood('${meal}')">Add to diary</button>`;}
+  <div class="two"><div class="field"><label>Calories</label><input id="cf_cal" type="number" inputmode="decimal" oninput="calcCfServ()"></div>
+    <div class="field"><label>Protein (g)</label><input id="cf_p" type="number" inputmode="decimal" oninput="calcCfServ()"></div></div>
+  <div class="two"><div class="field"><label>Carbs (g)</label><input id="cf_c" type="number" inputmode="decimal" oninput="calcCfServ()"></div>
+    <div class="field"><label>Fat (g)</label><input id="cf_f" type="number" inputmode="decimal" oninput="calcCfServ()"></div></div>
+  <label>Servings</label><div class="stepper"><button onclick="stepCfServ(-0.5)">−</button>
+    <input id="cf_serv" type="number" inputmode="decimal" value="1" step="0.5" oninput="calcCfServ()"><button onclick="stepCfServ(0.5)">+</button></div>
+  <div class="calcout" id="cf_out"></div>
+  <button class="btn" style="margin-top:12px" onclick="addCustomFood('${meal}')">Add to diary</button>`;}
+function stepCfServ(d){const el=document.getElementById('cf_serv');el.value=Math.max(0.5,(parseFloat(el.value)||1)+d);calcCfServ();}
+function calcCfServ(){const s=parseFloat(v('cf_serv'))||1,o=document.getElementById('cf_out');if(!o)return;
+  const cal=Math.round((+v('cf_cal')||0)*s),p=((+v('cf_p')||0)*s).toFixed(1),c=((+v('cf_c')||0)*s).toFixed(1),f=((+v('cf_f')||0)*s).toFixed(1);
+  o.innerHTML=`<div class="big">${cal} <span style="font-size:16px">kcal</span></div><div class="muted">${p}g protein · ${c}g carbs · ${f}g fat</div>`;}
 function goalsSheet(){const g=DB.nutritionGoals,p=DB.profile,mode=g.autoCalc||'fat';
   const latestKg=DB.weights.length?DB.weights[DB.weights.length-1].kg:null;
   const wDisp=latestKg?(uImperial()?Math.round(kgToLb(latestKg)):Math.round(latestKg)):'';
