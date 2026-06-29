@@ -418,13 +418,11 @@ function renderHome(){
     <div class="rowflex"><div class="ring" style="--p:${wp}"><i>${wp}%</i></div><div class="grow">
       <div class="t" style="font-weight:700;font-size:15px">Hydration</div>
       <div class="muted">${water} / ${waterGoal} oz today</div>
-      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(8)">+8 oz</button>
-        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(16)">+16 oz</button>
-        <div style="display:flex;gap:4px">
-          <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWaterCustom()">+ Custom</button>
-          <button class="btn ghost sm" style="width:auto;padding:8px 14px;color:var(--rose);border-color:var(--rose)" onclick="removeWater()">− Remove</button>
-        </div>
+      <div style="margin-top:8px;display:flex;gap:5px;flex-wrap:nowrap">
+        <button class="btn ghost sm" style="width:auto;padding:7px 10px;font-size:12px" onclick="addWater(8)">+8 oz</button>
+        <button class="btn ghost sm" style="width:auto;padding:7px 10px;font-size:12px" onclick="addWater(16)">+16 oz</button>
+        <button class="btn ghost sm" style="width:auto;padding:7px 10px;font-size:12px" onclick="addWaterCustom()">+ Custom</button>
+        <button class="btn ghost sm" style="width:auto;padding:7px 10px;font-size:12px;color:var(--rose);border-color:var(--rose)" onclick="removeWater()">− Remove</button>
       </div></div></div>
   </div>`;
 
@@ -514,14 +512,12 @@ function renderFood(){
     <div class="rowflex"><div class="ring" style="--p:${wp}"><i>${wp}%</i></div><div class="grow">
       <div class="t" style="font-weight:700;font-size:15px">Hydration</div>
       <div class="muted">${water} / ${waterGoal} oz${isToday?' today':''}</div>
-      ${isToday?`<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(8)">+8 oz</button>
-        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(16)">+16 oz</button>
-        <div style="display:flex;gap:4px">
-          <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWaterCustom()">+ Custom</button>
-          <button class="btn ghost sm" style="width:auto;padding:8px 14px;color:var(--rose);border-color:var(--rose)" onclick="removeWater()">− Remove</button>
-        </div>
-        <button onclick="editWaterGoal()" style="background:transparent;border:0;color:var(--mint);font-weight:700;font-size:14px">Goal</button>
+      ${isToday?`<div style="margin-top:8px;display:flex;gap:5px;flex-wrap:nowrap;align-items:center">
+        <button class="btn ghost sm" style="width:auto;padding:7px 10px;font-size:12px" onclick="addWater(8)">+8 oz</button>
+        <button class="btn ghost sm" style="width:auto;padding:7px 10px;font-size:12px" onclick="addWater(16)">+16 oz</button>
+        <button class="btn ghost sm" style="width:auto;padding:7px 10px;font-size:12px" onclick="addWaterCustom()">+ Custom</button>
+        <button class="btn ghost sm" style="width:auto;padding:7px 10px;font-size:12px;color:var(--rose);border-color:var(--rose)" onclick="removeWater()">− Remove</button>
+        <button onclick="editWaterGoal()" style="background:transparent;border:0;color:var(--mint);font-weight:700;font-size:14px;white-space:nowrap">Goal</button>
       </div>`:''}</div></div>
   </div>`;
   html+=`<div class="kcalcard">
