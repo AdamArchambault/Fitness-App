@@ -418,9 +418,10 @@ function renderHome(){
     <div class="rowflex"><div class="ring" style="--p:${wp}"><i>${wp}%</i></div><div class="grow">
       <div class="t" style="font-weight:700;font-size:15px">Hydration</div>
       <div class="muted">${water} / ${waterGoal} oz today</div>
-      <div style="margin-top:8px;display:flex;gap:8px">
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(8)">+8 oz</button>
         <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(16)">+16 oz</button>
+        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWaterCustom()">+ Custom</button>
       </div></div></div>
   </div>`;
 
@@ -444,6 +445,7 @@ function insightsCard(){
   return `<div class="card"><div class="rowflex"><div class="dot" style="background:rgba(46,196,182,.14);overflow:hidden">${ic('bot',20,'var(--mint)')}</div><div class="grow muted">${body}</div></div></div>`;
 }
 function addWater(oz){DB.water[todayKey()]=(DB.water[todayKey()]||0)+oz;save();const on=document.querySelector('.page.on');if(on&&on.id==='p-home')renderHome();else renderFood();}
+function addWaterCustom(){const val=prompt('How many oz?');if(val===null)return;const oz=parseFloat(val);if(!oz||oz<=0)return;addWater(oz);}
 
 /* INVENTORY */
 let invView='stack';
@@ -511,6 +513,7 @@ function renderFood(){
       ${isToday?`<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(8)">+8 oz</button>
         <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(16)">+16 oz</button>
+        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWaterCustom()">+ Custom</button>
         <button onclick="editWaterGoal()" style="background:transparent;border:0;color:var(--mint);font-weight:700;font-size:14px">Goal</button>
       </div>`:''}</div></div>
   </div>`;
