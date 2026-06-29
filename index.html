@@ -304,7 +304,7 @@ if(DB.profile.activity===undefined)DB.profile.activity=1.55;
 DB.nutritionGoals=DB.nutritionGoals||{cal:2700,p:200,c:300,f:78,autoCalc:'fat'};
 if(!DB.nutritionGoals.autoCalc)DB.nutritionGoals.autoCalc='fat';
 DB.meals=DB.meals||{}; DB.workouts=DB.workouts||[]; if(DB.activeWorkout===undefined)DB.activeWorkout=null;
-DB.waterGoal=DB.waterGoal||80; DB.customFoods=DB.customFoods||[];
+DB.waterGoal=DB.waterGoal||80; DB.customFoods=DB.customFoods||[]; DB.recentFoods=DB.recentFoods||[];
 function save(){store.set('pepai',DB);}
 /* one-time migration: merge "Pull (Tuesday - finishing)" into "Pull (Tuesday)" */
 (function(){const i2=DB.workouts.findIndex(w=>w.name==='Pull (Tuesday - finishing)'&&(w.date||'').startsWith('2026-06-16'));if(i2<0)return;
@@ -529,26 +529,53 @@ function renderFood(){
   MEAL_KEYS.forEach(k=>{
     const items=getDayMeals(day)[k];
     html+=`<div class="card" style="padding:6px 16px 4px"><div class="mealhead"><span class="name">${MEAL_LBL[k]}</span><span class="kc">${mealCal(day,k)} kcal</span></div>`;
-    items.forEach((e,idx)=>{html+=`<div class="foodrow" ${isToday?`onclick="delFood('${k}',${idx})"`:''}>
+    items.forEach((e,idx)=>{html+=`<div class="foodrow" ${isToday?`onclick="openSheet('editentry','${k}',${idx})"`:''}>
         <div class="grow"><div class="t">${e.name}</div><div class="d">${e.q}× ${e.serv} · ${e.p}p ${e.c}c ${e.f}f</div></div>
         <div class="kc">${e.cal}</div></div>`;});
     if(isToday)html+=`<button class="addfood" onclick="openSheet('food','${k}')">+ Add food</button>`;
     html+=`</div>`;
   });
-  html+=`<div class="disc">${isToday?'Tap a food entry to remove it. ':'Reviewing a past day (read-only). '}Search & barcode data from Open Food Facts.</div>`;
+  html+=`<div class="disc">${isToday?'Tap a food entry to edit or remove it. ':'Reviewing a past day (read-only). '}Search & barcode data from Open Food Facts.</div>`;
   document.getElementById('p-food').innerHTML=html;
 }
 function delFood(meal,idx){const m=getDayMeals(todayKey());m[meal].splice(idx,1);save();renderFood();}
+function trackRecentFood(f){
+  DB.recentFoods=DB.recentFoods||[];
+  DB.recentFoods=DB.recentFoods.filter(x=>x.n.toLowerCase()!==f.n.toLowerCase());
+  DB.recentFoods.unshift({n:f.n,s:f.s,cal:f.cal,p:f.p,c:f.c,f:f.f});
+  if(DB.recentFoods.length>20)DB.recentFoods.length=20;}
+function editEntrySheet(meal,idx){
+  const m=getDayMeals(todayKey());const e=m[meal][idx];if(!e)return'';
+  const perUnit={cal:e.cal/e.q,p:e.p/e.q,c:e.c/e.q,f:e.f/e.q};
+  window._editEntry={meal,idx,perUnit};
+  return `<h2>${e.name}</h2>
+  <div class="muted" style="margin-bottom:6px">${e.serv} · ${Math.round(perUnit.cal)} kcal · ${perUnit.p.toFixed(1)}p ${perUnit.c.toFixed(1)}c ${perUnit.f.toFixed(1)}f per serving</div>
+  <label>Servings</label><div class="stepper">
+    <button onclick="stepEditServ(-0.5)">−</button>
+    <input id="ee_serv" type="number" inputmode="decimal" value="${e.q}" step="0.5" oninput="calcEditServ()">
+    <button onclick="stepEditServ(0.5)">+</button></div>
+  <div class="calcout" id="ee_out"></div>
+  <button class="btn" style="margin-top:12px" onclick="saveEditEntry()">Save changes</button>
+  <button class="btn ghost" style="margin-top:8px;color:var(--rose)" onclick="delFood('${meal}',${idx});closeSheet()">Remove from diary</button>`;}
+function stepEditServ(d){const el=document.getElementById('ee_serv');el.value=Math.max(0.5,(parseFloat(el.value)||1)+d);calcEditServ();}
+function calcEditServ(){const ee=window._editEntry;if(!ee)return;const o=document.getElementById('ee_out');if(!o)return;
+  const s=parseFloat(document.getElementById('ee_serv').value)||1;
+  o.innerHTML=`<div class="big">${Math.round(ee.perUnit.cal*s)} <span style="font-size:16px">kcal</span></div><div class="muted">${(ee.perUnit.p*s).toFixed(1)}g protein · ${(ee.perUnit.c*s).toFixed(1)}g carbs · ${(ee.perUnit.f*s).toFixed(1)}g fat</div>`;}
+function saveEditEntry(){const ee=window._editEntry;if(!ee)return;
+  const s=parseFloat(document.getElementById('ee_serv').value)||1;
+  const m=getDayMeals(todayKey());const e=m[ee.meal][ee.idx];if(!e)return;
+  e.q=s;e.cal=Math.round(ee.perUnit.cal*s);e.p=+(ee.perUnit.p*s).toFixed(1);e.c=+(ee.perUnit.c*s).toFixed(1);e.f=+(ee.perUnit.f*s).toFixed(1);
+  save();closeSheet();renderFood();toast('Entry updated');}
 function addFood(idx,meal,servings){const f=CUR[idx];if(!f)return;const s=servings||1,m=getDayMeals(todayKey());
   m[meal].push({name:f.n,serv:f.s,q:s,cal:Math.round(f.cal*s),p:+(f.p*s).toFixed(1),c:+(f.c*s).toFixed(1),f:+(f.f*s).toFixed(1)});
-  save();closeSheet();go('food');toast(f.n+' added');}
+  trackRecentFood(f);save();closeSheet();go('food');toast(f.n+' added');}
 function addCustomFood(meal){const name=v('cf_name')||'Custom food';const s=parseFloat(v('cf_serv'))||1;
   const food={n:name,s:'1 serving',cal:Math.round(+v('cf_cal')||0),p:+v('cf_p')||0,c:+v('cf_c')||0,f:+v('cf_f')||0};
   const m=getDayMeals(todayKey());
   m[meal].push({name:food.n,serv:food.s,q:s,cal:Math.round(food.cal*s),p:+(food.p*s).toFixed(1),c:+(food.c*s).toFixed(1),f:+(food.f*s).toFixed(1)});
   DB.customFoods=DB.customFoods||[];
   if(!DB.customFoods.some(x=>x.n.toLowerCase()===food.n.toLowerCase()))DB.customFoods.push(food);
-  save();closeSheet();go('food');toast('Added to '+MEAL_LBL[meal]);}
+  trackRecentFood(food);save();closeSheet();go('food');toast('Added to '+MEAL_LBL[meal]);}
 /* diary history */
 function foodHistorySheet(){return `<h2>Diary history</h2>
   <div class="field" style="margin-top:8px"><input id="histSearch" placeholder="🔍 Filter by food name…" oninput="renderHistResults(this.value)"></div>
@@ -600,7 +627,9 @@ async function lookupBarcode(code,meal){
 function addScanned(meal){const sc=window._scanned;if(!sc)return;const s=parseFloat(v('sa_serv'))||1;const mealSel=v('sa_meal')||meal;
   const m=getDayMeals(todayKey());
   m[mealSel].push({name:sc.n,serv:sc.s,q:s,cal:Math.round(sc.cal*s),p:+(sc.p*s).toFixed(1),c:+(sc.c*s).toFixed(1),f:+(sc.f*s).toFixed(1)});
-  save();closeSheet();go('food');toast('Added to '+MEAL_LBL[mealSel]);}
+  DB.customFoods=DB.customFoods||[];
+  if(!DB.customFoods.some(x=>x.n.toLowerCase()===sc.n.toLowerCase()))DB.customFoods.push({n:sc.n,s:sc.s,cal:sc.cal,p:sc.p,c:sc.c,f:sc.f});
+  trackRecentFood(sc);save();closeSheet();go('food');toast('Added to '+MEAL_LBL[mealSel]);}
 function calcScan(){const sc=window._scanned;const o=document.getElementById('sa_out');if(!sc||!o)return;const s=parseFloat(v('sa_serv'))||1;
   o.innerHTML=`<div class="big">${Math.round(sc.cal*s)} <span style="font-size:16px">kcal</span></div><div class="muted">${(sc.p*s).toFixed(1)}g protein · ${(sc.c*s).toFixed(1)}g carbs · ${(sc.f*s).toFixed(1)}g fat</div>`;}
 function stepScan(d){const el=document.getElementById('sa_serv');el.value=Math.max(0.5,(parseFloat(el.value)||1)+d);calcScan();}
@@ -815,6 +844,7 @@ function openSheet(type,a,b){sbody.innerHTML=sheetHTML(type,a,b);scrim.classList
   if(type==='foodhistory')setTimeout(()=>renderHistResults(''),0);
   if(type==='fooditem')setTimeout(()=>calcServ(a),0);
   if(type==='scanadd')setTimeout(()=>calcScan(),0);
+  if(type==='editentry')setTimeout(()=>calcEditServ(),0);
   if(type==='goals')setTimeout(()=>macroSplit(),0);
   if(type==='barcode')setTimeout(()=>startBarcode(a),200);
   if(type==='addex')setTimeout(()=>document.getElementById('ex_name')&&document.getElementById('ex_name').focus(),300);
@@ -835,6 +865,7 @@ function sheetHTML(type,a,b){
   if(type==='goals')return goalsSheet();
   if(type==='barcode')return barcodeSheet(a);
   if(type==='scanadd')return scanaddSheet(a);
+  if(type==='editentry')return editEntrySheet(a,b);
   if(type==='startworkout')return startWorkoutSheet();
   if(type==='addex')return addExSheet();
   if(type==='addset')return addSetSheet(a);
@@ -964,9 +995,19 @@ function foodRow(o,i){return `<div class="foodrow"><div class="grow" onclick="op
       <div class="t">${o.n}${o.src==='off'?' <span style="color:var(--ink3);font-size:11px;font-weight:600">· OFF</span>':''}</div><div class="d">${o.s} · ${o.p}p ${o.c}c ${o.f}f</div></div>
     <div class="kc">${o.cal}</div><button class="add" onclick="addFood(${i},document.getElementById('foodMeal').value,1)">+</button></div>`;}
 function renderFoodResults(q){const box=document.getElementById('foodResults');if(!box)return;q=(q||'').toLowerCase().trim();
-  CUR=localFoods().filter(o=>!q||o.n.toLowerCase().includes(q)).slice(0,40);
   const seq=++offSeq;if(offTimer)clearTimeout(offTimer);
-  if(q.length<2){box.innerHTML=CUR.length?CUR.map((o,i)=>foodRow(o,i)).join(''):'<div class="empty">Type at least 2 letters to search the food database…</div>';return;}
+  if(q.length<2){
+    const rec=DB.recentFoods||[];
+    if(rec.length){
+      const recLower=new Set(rec.map(r=>r.n.toLowerCase()));
+      CUR=rec.concat(localFoods().filter(o=>!recLower.has(o.n.toLowerCase()))).slice(0,40);
+      box.innerHTML='<div class="muted" style="font-size:12px;padding:4px 2px 6px;font-weight:600">Recently used</div>'+CUR.map((o,i)=>foodRow(o,i)).join('');
+    } else {
+      CUR=localFoods().slice(0,40);
+      box.innerHTML=CUR.length?CUR.map((o,i)=>foodRow(o,i)).join(''):'<div class="empty">Type at least 2 letters to search the food database…</div>';
+    }
+    return;}
+  CUR=localFoods().filter(o=>o.n.toLowerCase().includes(q)).slice(0,40);
   box.innerHTML=(CUR.length?CUR.map((o,i)=>foodRow(o,i)).join(''):'')+'<div class="empty" id="offLoad">Searching database…</div>';
   offTimer=setTimeout(()=>searchOFF(q,seq),300);}
 async function searchOFF(q,seq){
@@ -1231,7 +1272,7 @@ async function loadFromCloud(uid){
     if(cloud._ts>localTs){
       DB=cloud;DB.pro=DB.pro||false;DB.unit=DB.unit||'kg';
       DB.units=DB.units||(DB.unit==='lb'?'imperial':'metric');
-      DB.waterGoal=DB.waterGoal||80;DB.customFoods=DB.customFoods||[];
+      DB.waterGoal=DB.waterGoal||80;DB.customFoods=DB.customFoods||[];DB.recentFoods=DB.recentFoods||[];
       DB.meals=DB.meals||{};DB.workouts=DB.workouts||[];
       if(DB.activeWorkout===undefined)DB.activeWorkout=null;
       DB.nutritionGoals=DB.nutritionGoals||{cal:2700,p:200,c:300,f:78,autoCalc:'fat'};
