@@ -1183,7 +1183,11 @@ function settingsSheet(){
   <div class="swatches" style="margin-bottom:18px">${themes.map(([k,c])=>`<div class="sw ${DB.theme===k?'on':''}" style="background:${c}" onclick="setTheme('${k}')"></div>`).join('')}</div>
   <label>Achievements</label>
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px">${badges.map(([e,t,got])=>`<div class="badge ${got?'got':''}"><div class="b">${e}</div><span>${t}</span></div>`).join('')}</div>
-  <button class="btn ghost" onclick="exportData()">Export my data (JSON)</button>
+  <button class="btn ghost" onclick="copyData()">Copy data to clipboard</button>
+  <div class="ttl" style="margin:18px 4px 10px">Import on this device</div>
+  <div class="field"><label>Paste data from another device</label><textarea id="importJson" rows="3" placeholder="Paste your copied data here…" style="font-size:13px;resize:vertical"></textarea></div>
+  <button class="btn ghost" onclick="importPasted()">Import pasted data</button>
+  <button class="btn ghost" style="margin-top:10px" onclick="exportData()">Download backup (JSON)</button>
   <button class="btn rose" style="margin-top:10px" onclick="resetAll()">Reset all data</button>
   ${fbAuth.currentUser?`<div class="card" style="margin-top:18px;padding:14px 16px"><div style="display:flex;align-items:center;gap:12px"><img src="${fbAuth.currentUser.photoURL||''}" style="width:36px;height:36px;border-radius:50%;background:var(--card2)" onerror="this.style.display='none'"><div class="grow"><div style="font-weight:600;font-size:14px">${fbAuth.currentUser.displayName||'Signed in'}</div><div style="font-size:12px;color:var(--ink2)">${fbAuth.currentUser.email}</div></div></div><button class="btn ghost" style="margin-top:12px" onclick="signOut()">Sign out</button></div>`:''}
   <div class="disc" style="margin-top:14px">Data syncs automatically to the cloud. Physical is for informational & record-keeping purposes only — not medical advice.</div>`;
@@ -1191,6 +1195,9 @@ function settingsSheet(){
 function setTheme(k){DB.theme=k;save();applyTheme();openSheet('settings');}
 function applyTheme(){if(DB.theme==='mint')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',DB.theme);}
 function exportData(){const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='physical-data.json';a.click();}
+function copyData(){const txt=JSON.stringify(DB);if(navigator.clipboard){navigator.clipboard.writeText(txt).then(()=>toast('Data copied — paste it in Settings on your other device')).catch(()=>fallbackCopy(txt));}else fallbackCopy(txt);}
+function fallbackCopy(txt){const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Data copied to clipboard');}catch(e){toast('Copy failed — use Download backup instead');}document.body.removeChild(ta);}
+function importPasted(){const txt=(document.getElementById('importJson')||{}).value||'';if(!txt.trim()){toast('Nothing pasted yet');return;}try{const d=JSON.parse(txt);if(!d.workouts||!d.profile)throw new Error('bad');if(!confirm('Replace all data on this device with the pasted data?'))return;Object.assign(DB,d);save();closeSheet();go('home');toast('Data imported successfully!');}catch(e){toast('Could not read that data — make sure you copied the full text');}}
 function resetAll(){if(confirm('Delete all your Physical data on this device?')){store.set('pepai',null);location.reload();}}
 
 /* toast + boot */
