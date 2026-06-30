@@ -503,7 +503,7 @@ function renderFood(){
       <button onclick="openSheet('foodhistory')" style="background:transparent;border:0;color:var(--ink);font-weight:700;font-size:14px">${dayLabel(day)} ▾</button>
       <button onclick="shiftDay(1)" ${canNext?'':'disabled'} style="background:transparent;border:0;color:${canNext?'var(--mint)':'var(--ink3)'};font-size:22px;font-weight:700;padding:2px 8px">›</button>
     </div>
-    <button onclick="openSheet('goals')" style="background:transparent;border:0;color:var(--mint);font-weight:700;font-size:14px">Macros</button></div>`;
+    <button onclick="openSheet('goals')" style="background:transparent;border:0;color:var(--mint);font-weight:700;font-size:14px">Macros & Water</button></div>`;
   html+=`<div class="card">
     <div class="rowflex"><div class="ring" style="--p:${wp}"><i>${wp}%</i></div><div class="grow">
       <div class="t" style="font-weight:700;font-size:15px">Hydration</div>
@@ -511,7 +511,6 @@ function renderFood(){
       ${isToday?`<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(8)">+8 oz</button>
         <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(16)">+16 oz</button>
-        <button onclick="editWaterGoal()" style="background:transparent;border:0;color:var(--mint);font-weight:700;font-size:14px">Goal</button>
       </div>`:''}</div></div>
   </div>`;
   html+=`<div class="kcalcard">
@@ -589,7 +588,9 @@ function openDay(k){foodViewDay=(k===todayKey())?null:k;closeSheet();go('food');
 function saveGoals(){const cal=+v('g_cal')||2700,p=+v('g_p')||0,mode=v('g_autoCalc')||'fat';let c,f;
   if(mode==='fat'){c=+v('g_c')||0;f=Math.max(0,Math.round((cal-p*4-c*4)/9));}
   else{f=+v('g_f')||0;c=Math.max(0,Math.round((cal-p*4-f*9)/4));}
-  DB.nutritionGoals={cal,p,c,f,autoCalc:mode};save();closeSheet();go('food');toast('Goals updated');}
+  DB.nutritionGoals={cal,p,c,f,autoCalc:mode};
+  const wg=Math.max(1,Math.round(+v('g_water')||80));DB.waterGoal=wg;waterGoal=wg;
+  save();closeSheet();go('food');toast('Goals updated');}
 
 /* ---- BARCODE SCANNER (camera + Open Food Facts) ---- */
 let bcReader=null;
@@ -1062,7 +1063,7 @@ function goalsSheet(){const g=DB.nutritionGoals,p=DB.profile,mode=g.autoCalc||'f
   const heightInputs=uImperial()
     ?`<div class="two"><div class="field"><label>Height (ft)</label><input id="gc_ft" type="number" inputmode="numeric" value="${hFt}"></div><div class="field"><label>Height (in)</label><input id="gc_in" type="number" inputmode="numeric" value="${hIn}"></div></div>`
     :`<div class="field"><label>Height (cm)</label><input id="gc_cm" type="number" inputmode="numeric" value="${hCm}"></div>`;
-  return `<h2>Daily nutrition goals</h2>
+  return `<h2>Macros & Water</h2>
   <div class="muted" style="margin:2px 0 12px">Set your calorie target and protein, then choose which macro to lock — the third calculates automatically.</div>
   <div class="card">
     <div class="ttl" style="margin:0 0 10px">Calorie calculator</div>
@@ -1100,6 +1101,7 @@ function goalsSheet(){const g=DB.nutritionGoals,p=DB.profile,mode=g.autoCalc||'f
       <div id="g_c_disp" class="lockfield">${g.c} g</div></div>
     <div class="muted" style="font-size:11.5px;margin:-6px 2px 12px">Calculated from calories remaining after protein &amp; fat.</div></div>
   <div id="g_split" class="muted" style="text-align:center;margin-bottom:14px"></div>
+  <div class="field"><label>Daily water goal (oz)</label><input id="g_water" type="number" inputmode="numeric" value="${DB.waterGoal||80}"></div>
   <button class="btn" onclick="saveGoals()">Save goals</button>`;
 }
 function readHeightCm(){if(uImperial()){const ft=+v('gc_ft')||0,inch=+v('gc_in')||0;const cm=inToCm(ft*12+inch);return cm>0?cm:null;}const cm=+v('gc_cm')||0;return cm>0?cm:null;}
