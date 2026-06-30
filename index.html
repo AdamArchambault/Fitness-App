@@ -266,7 +266,8 @@
 const store=(()=>{let mem={},ok=true;try{localStorage.setItem('__t','1');localStorage.removeItem('__t');}catch(e){ok=false;}
   return{get:(k,d)=>{if(ok){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}return k in mem?mem[k]:d;},
   set:(k,v)=>{if(ok){try{localStorage.setItem(k,JSON.stringify(v));return;}catch(e){}}mem[k]=v;}};})();
-const todayKey=()=>new Date().toISOString().slice(0,10);
+const localDateKey=d=>{const dt=d||new Date();return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;};
+const todayKey=()=>localDateKey();
 const fmtTime=d=>new Date(d).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
 const fmtDay=d=>new Date(d).toLocaleDateString([],{month:'short',day:'numeric'});
 const uid=()=>Math.random().toString(36).slice(2,9);
@@ -323,7 +324,7 @@ const kgToLb=k=>k*2.2046226, lbToKg=l=>l/2.2046226, cmToIn=c=>c/2.54, inToCm=i=>
 function dispWeight(kg){return uImperial()?Math.round(kgToLb(kg)*10)/10:Math.round(kg*10)/10;}
 
 let waterGoal=DB.waterGoal||80;
-function streak(){let s=0,d=new Date();for(;;){const k=d.toISOString().slice(0,10);
+function streak(){let s=0,d=new Date();for(;;){const k=localDateKey(d);
   const has=DB.doses.some(x=>x.date.slice(0,10)===k)||(DB.water[k]>0)||DB.weights.some(w=>w.date===k)||(DB.meals[k]&&Object.values(DB.meals[k]).some(a=>a.length))||DB.workouts.some(w=>w.date&&w.date.slice(0,10)===k);
   if(has){s++;d.setDate(d.getDate()-1);}else if(k===todayKey()){d.setDate(d.getDate()-1);}else break;if(s>365)break;}return s;}
 
@@ -418,9 +419,11 @@ function renderHome(){
     <div class="rowflex"><div class="ring" style="--p:${wp}"><i>${wp}%</i></div><div class="grow">
       <div class="t" style="font-weight:700;font-size:15px">Hydration</div>
       <div class="muted">${water} / ${waterGoal} oz today</div>
-      <div style="margin-top:8px;display:flex;gap:8px">
-        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(8)">+8 oz</button>
-        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(16)">+16 oz</button>
+      <div style="margin-top:8px;display:flex;gap:5px;flex-wrap:nowrap">
+        <button class="btn ghost sm" style="width:auto;padding:7px 10px;font-size:12px" onclick="addWater(8)">+8 oz</button>
+        <button class="btn ghost sm" style="width:auto;padding:7px 10px;font-size:12px" onclick="addWater(16)">+16 oz</button>
+        <button class="btn ghost sm" style="width:auto;padding:7px 10px;font-size:12px" onclick="addWaterCustom()">+ Custom</button>
+        <button class="btn ghost sm" style="width:auto;padding:7px 10px;font-size:12px;color:var(--rose);border-color:var(--rose)" onclick="removeWater()">− Remove</button>
       </div></div></div>
   </div>`;
 
@@ -444,6 +447,8 @@ function insightsCard(){
   return `<div class="card"><div class="rowflex"><div class="dot" style="background:rgba(46,196,182,.14);overflow:hidden">${ic('bot',20,'var(--mint)')}</div><div class="grow muted">${body}</div></div></div>`;
 }
 function addWater(oz){DB.water[todayKey()]=(DB.water[todayKey()]||0)+oz;save();const on=document.querySelector('.page.on');if(on&&on.id==='p-home')renderHome();else renderFood();}
+function addWaterCustom(){const val=prompt('How many oz?');if(val===null)return;const oz=parseFloat(val);if(!oz||oz<=0)return;addWater(oz);}
+function removeWater(){const cur=DB.water[todayKey()]||0;const val=prompt('Remove how many oz? (current: '+cur+' oz)');if(val===null)return;const oz=parseFloat(val);if(!oz||oz<=0)return;DB.water[todayKey()]=Math.max(0,cur-oz);save();const on=document.querySelector('.page.on');if(on&&on.id==='p-home')renderHome();else renderFood();}
 
 /* INVENTORY */
 let invView='stack';
@@ -487,7 +492,7 @@ function renderInv(){
 /* FOOD */
 let CUR=[],offSeq=0,offTimer=null,foodViewDay=null;
 function dayLabel(k){if(k===todayKey())return 'Today';const d=new Date(k+'T00:00:00');return d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});}
-function shiftDay(delta){const base=foodViewDay||todayKey();const d=new Date(base+'T00:00:00');d.setDate(d.getDate()+delta);const k=d.toISOString().slice(0,10);if(k>todayKey())return;foodViewDay=(k===todayKey())?null:k;renderFood();}
+function shiftDay(delta){const base=foodViewDay||todayKey();const d=new Date(base+'T00:00:00');d.setDate(d.getDate()+delta);const k=localDateKey(d);if(k>todayKey())return;foodViewDay=(k===todayKey())?null:k;renderFood();}
 function editWaterGoal(){const val=prompt('Daily hydration goal (oz):',waterGoal);if(val===null)return;const n=Math.max(1,Math.round(+val||0));if(!n)return;DB.waterGoal=n;waterGoal=n;save();const on=document.querySelector('.page.on');if(on&&on.id==='p-home')renderHome();else renderFood();}
 function renderFood(){
   const day=foodViewDay||todayKey(),isToday=day===todayKey();
@@ -508,9 +513,11 @@ function renderFood(){
     <div class="rowflex"><div class="ring" style="--p:${wp}"><i>${wp}%</i></div><div class="grow">
       <div class="t" style="font-weight:700;font-size:15px">Hydration</div>
       <div class="muted">${water} / ${waterGoal} oz${isToday?' today':''}</div>
-      ${isToday?`<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(8)">+8 oz</button>
-        <button class="btn ghost sm" style="width:auto;padding:8px 14px" onclick="addWater(16)">+16 oz</button>
+      ${isToday?`<div style="margin-top:8px;display:flex;gap:5px;flex-wrap:nowrap;align-items:center">
+        <button class="btn ghost sm" style="width:auto;padding:7px 10px;font-size:12px" onclick="addWater(8)">+8 oz</button>
+        <button class="btn ghost sm" style="width:auto;padding:7px 10px;font-size:12px" onclick="addWater(16)">+16 oz</button>
+        <button class="btn ghost sm" style="width:auto;padding:7px 10px;font-size:12px" onclick="addWaterCustom()">+ Custom</button>
+        <button class="btn ghost sm" style="width:auto;padding:7px 10px;font-size:12px;color:var(--rose);border-color:var(--rose)" onclick="removeWater()">− Remove</button>
       </div>`:''}</div></div>
   </div>`;
   html+=`<div class="kcalcard">
@@ -528,7 +535,7 @@ function renderFood(){
   MEAL_KEYS.forEach(k=>{
     const items=getDayMeals(day)[k];
     html+=`<div class="card" style="padding:6px 16px 4px"><div class="mealhead"><span class="name">${MEAL_LBL[k]}</span><span class="kc">${mealCal(day,k)} kcal</span></div>`;
-    items.forEach((e,idx)=>{html+=`<div class="foodrow" ${isToday?`onclick="openSheet('editentry','${k}',${idx})"`:''}>
+    items.forEach((e,idx)=>{html+=`<div class="foodrow" ${isToday?`onclick="openSheet('editfood','${k}',${idx})"`:''}>
         <div class="grow"><div class="t">${e.name}</div><div class="d">${e.q}× ${e.serv} · ${e.p}p ${e.c}c ${e.f}f</div></div>
         <div class="kc">${e.cal}</div></div>`;});
     if(isToday)html+=`<button class="addfood" onclick="openSheet('food','${k}')">+ Add food</button>`;
@@ -543,31 +550,6 @@ function trackRecentFood(f){
   DB.recentFoods=DB.recentFoods.filter(x=>x.n.toLowerCase()!==f.n.toLowerCase());
   DB.recentFoods.unshift({n:f.n,s:f.s,cal:f.cal,p:f.p,c:f.c,f:f.f});
   if(DB.recentFoods.length>20)DB.recentFoods.length=20;}
-function editEntrySheet(meal,idx){
-  const m=getDayMeals(todayKey());const e=m[meal][idx];if(!e)return'';
-  const perUnit={cal:e.cal/e.q,p:e.p/e.q,c:e.c/e.q,f:e.f/e.q};
-  window._editEntry={meal,idx,perUnit};
-  return `<h2>${e.name}</h2>
-  <div class="muted" style="margin-bottom:6px">${e.serv} · ${Math.round(perUnit.cal)} kcal · ${perUnit.p.toFixed(1)}p ${perUnit.c.toFixed(1)}c ${perUnit.f.toFixed(1)}f per serving</div>
-  <label>Servings</label><div class="stepper">
-    <button onclick="stepEditServ(-0.5)">−</button>
-    <input id="ee_serv" type="number" inputmode="decimal" value="${e.q}" step="0.5" oninput="calcEditServ()">
-    <button onclick="stepEditServ(0.5)">+</button></div>
-  <div class="calcout" id="ee_out"></div>
-  <button class="btn" style="margin-top:12px" onclick="saveEditEntry()">Save changes</button>
-  <button class="btn ghost" style="margin-top:8px;color:var(--rose)" onclick="delFood('${meal}',${idx});closeSheet()">Remove from diary</button>`;}
-function stepEditServ(d){const el=document.getElementById('ee_serv');el.value=Math.max(0.5,(parseFloat(el.value)||1)+d);calcEditServ();}
-function calcEditServ(){const ee=window._editEntry;if(!ee)return;const o=document.getElementById('ee_out');if(!o)return;
-  const s=parseFloat(document.getElementById('ee_serv').value)||1;
-  o.innerHTML=`<div class="big">${Math.round(ee.perUnit.cal*s)} <span style="font-size:16px">kcal</span></div><div class="muted">${(ee.perUnit.p*s).toFixed(1)}g protein · ${(ee.perUnit.c*s).toFixed(1)}g carbs · ${(ee.perUnit.f*s).toFixed(1)}g fat</div>`;}
-function saveEditEntry(){const ee=window._editEntry;if(!ee)return;
-  const s=parseFloat(document.getElementById('ee_serv').value)||1;
-  const m=getDayMeals(todayKey());const e=m[ee.meal][ee.idx];if(!e)return;
-  e.q=s;e.cal=Math.round(ee.perUnit.cal*s);e.p=+(ee.perUnit.p*s).toFixed(1);e.c=+(ee.perUnit.c*s).toFixed(1);e.f=+(ee.perUnit.f*s).toFixed(1);
-  save();closeSheet();renderFood();toast('Entry updated');}
-function addFood(idx,meal,servings){const f=CUR[idx];if(!f)return;const s=servings||1,m=getDayMeals(todayKey());
-  m[meal].push({name:f.n,serv:f.s,q:s,cal:Math.round(f.cal*s),p:+(f.p*s).toFixed(1),c:+(f.c*s).toFixed(1),f:+(f.f*s).toFixed(1)});
-  trackRecentFood(f);save();closeSheet();go('food');toast(f.n+' added');}
 function addCustomFood(meal){const name=v('cf_name')||'Custom food';const s=parseFloat(v('cf_serv'))||1;
   const food={n:name,s:'1 serving',cal:Math.round(+v('cf_cal')||0),p:+v('cf_p')||0,c:+v('cf_c')||0,f:+v('cf_f')||0};
   const m=getDayMeals(todayKey());
@@ -843,9 +825,9 @@ function openSheet(type,a,b){sbody.innerHTML=sheetHTML(type,a,b);scrim.classList
   if(type==='log')setTimeout(()=>document.getElementById('lg_amt')&&document.getElementById('lg_amt').focus(),300);
   if(type==='food'){renderFoodResults('');setTimeout(()=>document.getElementById('foodSearch')&&document.getElementById('foodSearch').focus(),300);}
   if(type==='foodhistory')setTimeout(()=>renderHistResults(''),0);
+  if(type==='editfood'){const m=getDayMeals(todayKey());const e=(m[a]||[])[b];if(e){window._editIdx=b;window._editEntry=e;window._editBase={cal:e.cal/e.q,p:e.p/e.q,c:e.c/e.q,f:e.f/e.q};}setTimeout(()=>calcEditServ(),0);}
   if(type==='fooditem')setTimeout(()=>calcServ(a),0);
   if(type==='scanadd')setTimeout(()=>calcScan(),0);
-  if(type==='editentry')setTimeout(()=>calcEditServ(),0);
   if(type==='goals')setTimeout(()=>macroSplit(),0);
   if(type==='barcode')setTimeout(()=>startBarcode(a),200);
   if(type==='addex')setTimeout(()=>document.getElementById('ex_name')&&document.getElementById('ex_name').focus(),300);
@@ -863,10 +845,10 @@ function sheetHTML(type,a,b){
   if(type==='fooditem')return foodItemSheet(a,b);
   if(type==='customfood')return customFoodSheet(a);
   if(type==='foodhistory')return foodHistorySheet();
+  if(type==='editfood')return editFoodSheet(a,b);
   if(type==='goals')return goalsSheet();
   if(type==='barcode')return barcodeSheet(a);
   if(type==='scanadd')return scanaddSheet(a);
-  if(type==='editentry')return editEntrySheet(a,b);
   if(type==='startworkout')return startWorkoutSheet();
   if(type==='addex')return addExSheet();
   if(type==='addset')return addSetSheet(a);
@@ -994,7 +976,7 @@ function foodSheet(meal){const opts=MEAL_KEYS.map(k=>`<option value="${k}" ${k==
 function localFoods(){return FOODS.concat(DB.customFoods||[]);}
 function foodRow(o,i){return `<div class="foodrow"><div class="grow" onclick="openSheet('fooditem',${i},document.getElementById('foodMeal').value)">
       <div class="t">${o.n}${o.src==='off'?' <span style="color:var(--ink3);font-size:11px;font-weight:600">· OFF</span>':''}</div><div class="d">${o.s} · ${o.p}p ${o.c}c ${o.f}f</div></div>
-    <div class="kc">${o.cal}</div><button class="add" onclick="addFood(${i},document.getElementById('foodMeal').value,1)">+</button></div>`;}
+    <div class="kc">${o.cal}</div><button class="add" onclick="openSheet('fooditem',${i},document.getElementById('foodMeal').value)">+</button></div>`;}
 function renderFoodResults(q){const box=document.getElementById('foodResults');if(!box)return;q=(q||'').toLowerCase().trim();
   const seq=++offSeq;if(offTimer)clearTimeout(offTimer);
   if(q.length<2){
@@ -1031,30 +1013,97 @@ async function searchOFF(q,seq){
     const box=document.getElementById('foodResults');if(!box)return;
     box.innerHTML=CUR.length?CUR.map((o,i)=>foodRow(o,i)).join(''):'<div class="empty">No matches. Try “custom food”.</div>';
   }catch(e){if(seq!==offSeq)return;const ld=document.getElementById('offLoad');if(ld)ld.textContent=CUR.length?'(Offline — showing your foods only)':'Offline — no database results. Try custom food.';}}
-function foodItemSheet(idx,meal){const f=CUR[idx];if(!f)return'';
-  return `<h2>${f.n}</h2><div class="muted" style="margin-bottom:6px">${f.s} · ${f.cal} kcal · ${f.p}p ${f.c}c ${f.f}f</div>
+/* ---- shared serving/gram toggle UI ---- */
+let fiMode='serv',cfMode='serv',editMode='serv';
+function servToggleHTML(idPrefix,changeFn){
+  return `<div style="display:flex;gap:8px;margin-bottom:10px">
+    <button id="${idPrefix}_tbServ" onclick="${changeFn}('serv')" style="flex:1;padding:9px;border-radius:10px;border:1.5px solid var(--mint);background:var(--mint);color:var(--on-accent);font-weight:700;font-size:13px">Servings</button>
+    <button id="${idPrefix}_tbGram" onclick="${changeFn}('gram')" style="flex:1;padding:9px;border-radius:10px;border:1.5px solid var(--line2);background:transparent;color:var(--ink2);font-weight:700;font-size:13px">Grams / mL</button>
+  </div>`;}
+function updateToggleBtns(idPrefix,mode){
+  const bs=document.getElementById(idPrefix+'_tbServ'),bg=document.getElementById(idPrefix+'_tbGram');if(!bs||!bg)return;
+  if(mode==='serv'){bs.style.background='var(--mint)';bs.style.borderColor='var(--mint)';bs.style.color='var(--on-accent)';bg.style.background='transparent';bg.style.borderColor='var(--line2)';bg.style.color='var(--ink2)';}
+  else{bg.style.background='var(--mint)';bg.style.borderColor='var(--mint)';bg.style.color='var(--on-accent)';bs.style.background='transparent';bs.style.borderColor='var(--line2)';bs.style.color='var(--ink2)';}
+  document.getElementById(idPrefix+'_servRow').style.display=mode==='serv'?'':'none';
+  document.getElementById(idPrefix+'_gramRow').style.display=mode==='gram'?'':'none';}
+
+/* ---- food item sheet (from search) ---- */
+function foodItemSheet(idx,meal){const f=CUR[idx];if(!f)return'';fiMode='serv';
+  return `<h2>${f.n}</h2><div class="muted" style="margin-bottom:10px">${f.s} · ${f.cal} kcal · ${f.p}p ${f.c}c ${f.f}f</div>
   <div class="field"><label>Meal</label><select id="fi_meal">${MEAL_KEYS.map(k=>`<option value="${k}" ${k===meal?'selected':''}>${MEAL_LBL[k]}</option>`).join('')}</select></div>
-  <label>Servings</label><div class="stepper"><button onclick="stepServ(-0.5)">−</button>
-    <input id="fi_serv" type="number" inputmode="decimal" value="1" step="0.5" oninput="calcServ(${idx})"><button onclick="stepServ(0.5)">+</button></div>
+  ${servToggleHTML('fi','setFiMode')}
+  <div id="fi_servRow"><label>Servings</label><div class="stepper"><button onclick="stepFi(-1)">−</button>
+    <input id="fi_serv" type="number" inputmode="decimal" value="1" step="1" oninput="calcServ(${idx})"><button onclick="stepFi(1)">+</button></div></div>
+  <div id="fi_gramRow" style="display:none"><label>Amount (g / mL)</label><div class="stepper"><button onclick="stepFiG(-10)">−</button>
+    <input id="fi_gram" type="number" inputmode="decimal" value="100" step="1" oninput="calcServ(${idx})"><button onclick="stepFiG(10)">+</button></div></div>
   <div class="calcout" id="fi_out"></div>
-  <button class="btn" style="margin-top:12px" onclick="addFood(${idx},document.getElementById('fi_meal').value,parseFloat(v('fi_serv'))||1)">Add to diary</button>`;}
-function stepServ(d){const el=document.getElementById('fi_serv');el.value=Math.max(0.5,(parseFloat(el.value)||1)+d);el.dispatchEvent(new Event('input'));}
-function calcServ(idx){const f=CUR[idx];if(!f)return;const s=parseFloat(v('fi_serv'))||1,o=document.getElementById('fi_out');if(!o)return;
+  <button class="btn" style="margin-top:12px" onclick="addFood(${idx},document.getElementById('fi_meal').value)">Add to diary</button>`;}
+function setFiMode(m){fiMode=m;updateToggleBtns('fi',m);calcServ(window._fiIdx);}
+function stepFi(d){const el=document.getElementById('fi_serv');el.value=Math.max(1,(parseInt(el.value)||1)+d);el.dispatchEvent(new Event('input'));}
+function stepFiG(d){const el=document.getElementById('fi_gram');el.value=Math.max(1,(parseFloat(el.value)||100)+d);el.dispatchEvent(new Event('input'));}
+function calcServ(idx){window._fiIdx=idx;const f=CUR[idx];if(!f)return;const o=document.getElementById('fi_out');if(!o)return;
+  let s;if(fiMode==='gram'){const g=parseFloat(v('fi_gram'))||100;s=g/100;}else{s=parseFloat(v('fi_serv'))||1;}
   o.innerHTML=`<div class="big">${Math.round(f.cal*s)} <span style="font-size:16px">kcal</span></div><div class="muted">${(f.p*s).toFixed(1)}g protein · ${(f.c*s).toFixed(1)}g carbs · ${(f.f*s).toFixed(1)}g fat</div>`;}
-function customFoodSheet(meal){return `<h2>Custom food</h2><div class="muted" style="margin-bottom:12px">Quick-add an item not in the database. Macros are per serving.</div>
+function addFood(idx,meal){const f=CUR[idx];if(!f)return;
+  let s;if(fiMode==='gram'){const g=parseFloat(v('fi_gram'))||100;s=g/100;}else{s=parseFloat(v('fi_serv'))||1;}
+  const m=getDayMeals(todayKey());
+  m[meal].push({name:f.n,serv:fiMode==='gram'?(v('fi_gram')+'g'):f.s,q:fiMode==='gram'?1:s,cal:Math.round(f.cal*s),p:+(f.p*s).toFixed(1),c:+(f.c*s).toFixed(1),f:+(f.f*s).toFixed(1)});
+  trackRecentFood(f);save();closeSheet();go('food');toast(f.n+' added');}
+
+/* ---- custom food sheet ---- */
+function customFoodSheet(meal){cfMode='serv';return `<h2>Custom food</h2><div class="muted" style="margin-bottom:12px">Macros are per serving / per 100g.</div>
   <div class="field"><label>Name</label><input id="cf_name" placeholder="e.g. Homemade smoothie"></div>
   <div class="two"><div class="field"><label>Calories</label><input id="cf_cal" type="number" inputmode="decimal" oninput="calcCfServ()"></div>
     <div class="field"><label>Protein (g)</label><input id="cf_p" type="number" inputmode="decimal" oninput="calcCfServ()"></div></div>
   <div class="two"><div class="field"><label>Carbs (g)</label><input id="cf_c" type="number" inputmode="decimal" oninput="calcCfServ()"></div>
     <div class="field"><label>Fat (g)</label><input id="cf_f" type="number" inputmode="decimal" oninput="calcCfServ()"></div></div>
-  <label>Servings</label><div class="stepper"><button onclick="stepCfServ(-0.5)">−</button>
-    <input id="cf_serv" type="number" inputmode="decimal" value="1" step="0.5" oninput="calcCfServ()"><button onclick="stepCfServ(0.5)">+</button></div>
+  ${servToggleHTML('cf','setCfMode')}
+  <div id="cf_servRow"><label>Servings</label><div class="stepper"><button onclick="stepCfServ(-1)">−</button>
+    <input id="cf_serv" type="number" inputmode="decimal" value="1" step="1" oninput="calcCfServ()"><button onclick="stepCfServ(1)">+</button></div></div>
+  <div id="cf_gramRow" style="display:none"><label>Amount (g / mL)</label><div class="stepper"><button onclick="stepCfGram(-10)">−</button>
+    <input id="cf_gram" type="number" inputmode="decimal" value="100" step="1" oninput="calcCfServ()"><button onclick="stepCfGram(10)">+</button></div></div>
   <div class="calcout" id="cf_out"></div>
   <button class="btn" style="margin-top:12px" onclick="addCustomFood('${meal}')">Add to diary</button>`;}
-function stepCfServ(d){const el=document.getElementById('cf_serv');el.value=Math.max(0.5,(parseFloat(el.value)||1)+d);calcCfServ();}
-function calcCfServ(){const s=parseFloat(v('cf_serv'))||1,o=document.getElementById('cf_out');if(!o)return;
+function setCfMode(m){cfMode=m;updateToggleBtns('cf',m);calcCfServ();}
+function stepCfServ(d){const el=document.getElementById('cf_serv');el.value=Math.max(1,(parseInt(el.value)||1)+d);calcCfServ();}
+function stepCfGram(d){const el=document.getElementById('cf_gram');el.value=Math.max(1,(parseFloat(el.value)||100)+d);calcCfServ();}
+function calcCfServ(){const o=document.getElementById('cf_out');if(!o)return;
+  let s;if(cfMode==='gram'){s=(parseFloat(v('cf_gram'))||100)/100;}else{s=parseFloat(v('cf_serv'))||1;}
   const cal=Math.round((+v('cf_cal')||0)*s),p=((+v('cf_p')||0)*s).toFixed(1),c=((+v('cf_c')||0)*s).toFixed(1),f=((+v('cf_f')||0)*s).toFixed(1);
   o.innerHTML=`<div class="big">${cal} <span style="font-size:16px">kcal</span></div><div class="muted">${p}g protein · ${c}g carbs · ${f}g fat</div>`;}
+
+/* ---- edit existing diary entry ---- */
+function editFoodSheet(meal,idx){const m=getDayMeals(todayKey());const e=m[meal][idx];if(!e)return'';editMode='serv';
+  return `<h2>${e.name}</h2><div class="muted" style="margin-bottom:10px">${e.serv}</div>
+  <div class="field"><label>Meal</label><select id="ef_meal">${MEAL_KEYS.map(k=>`<option value="${k}" ${k===meal?'selected':''}>${MEAL_LBL[k]}</option>`).join('')}</select></div>
+  ${servToggleHTML('ef','setEditMode')}
+  <div id="ef_servRow"><label>Servings</label><div class="stepper"><button onclick="stepEf(-1)">−</button>
+    <input id="ef_serv" type="number" inputmode="decimal" value="${e.q}" step="1" oninput="calcEditServ()"><button onclick="stepEf(1)">+</button></div></div>
+  <div id="ef_gramRow" style="display:none"><label>Amount (g / mL)</label><div class="stepper"><button onclick="stepEfG(-10)">−</button>
+    <input id="ef_gram" type="number" inputmode="decimal" value="100" step="1" oninput="calcEditServ()"><button onclick="stepEfG(10)">+</button></div></div>
+  <div class="calcout" id="ef_out"></div>
+  <div style="display:flex;gap:10px;margin-top:12px">
+    <button class="btn" style="flex:2" onclick="saveEditFood('${meal}',${idx})">Save changes</button>
+    <button class="btn rose" style="flex:1" onclick="delFood('${meal}',${idx})">Delete</button>
+  </div>`;}
+function setEditMode(m){editMode=m;updateToggleBtns('ef',m);calcEditServ();}
+function stepEf(d){const el=document.getElementById('ef_serv');el.value=Math.max(1,(parseInt(el.value)||1)+d);calcEditServ();}
+function stepEfG(d){const el=document.getElementById('ef_gram');el.value=Math.max(1,(parseFloat(el.value)||100)+d);calcEditServ();}
+function calcEditServ(){const meal=v('ef_meal')||MEAL_KEYS[0];const idx=window._editIdx||0;
+  const m=getDayMeals(todayKey());const e=m[meal]||[];const entry=e[idx]||window._editEntry;if(!entry)return;
+  const o=document.getElementById('ef_out');if(!o)return;
+  let s;if(editMode==='gram'){s=(parseFloat(v('ef_gram'))||100)/100;}else{s=parseFloat(v('ef_serv'))||1;}
+  const base=window._editBase||{cal:entry.cal/entry.q,p:entry.p/entry.q,c:entry.c/entry.q,f:entry.f/entry.q};
+  o.innerHTML=`<div class="big">${Math.round(base.cal*s)} <span style="font-size:16px">kcal</span></div><div class="muted">${(base.p*s).toFixed(1)}g protein · ${(base.c*s).toFixed(1)}g carbs · ${(base.f*s).toFixed(1)}g fat</div>`;}
+function saveEditFood(meal,idx){const m=getDayMeals(todayKey());const e=m[meal][idx];if(!e)return;
+  const base={cal:e.cal/e.q,p:e.p/e.q,c:e.c/e.q,f:e.f/e.q};
+  let s,serv;if(editMode==='gram'){s=(parseFloat(v('ef_gram'))||100)/100;serv=v('ef_gram')+'g';}else{s=parseFloat(v('ef_serv'))||1;serv=e.serv;}
+  const newMeal=v('ef_meal')||meal;
+  const updated={name:e.name,serv,q:editMode==='gram'?1:s,cal:Math.round(base.cal*s),p:+(base.p*s).toFixed(1),c:+(base.c*s).toFixed(1),f:+(base.f*s).toFixed(1)};
+  m[meal].splice(idx,1);
+  getDayMeals(todayKey())[newMeal].push(updated);
+  save();closeSheet();go('food');toast('Entry updated');}
+function delFood(meal,idx){const m=getDayMeals(todayKey());m[meal].splice(idx,1);save();closeSheet();renderFood();}
 function goalsSheet(){const g=DB.nutritionGoals,p=DB.profile,mode=g.autoCalc||'fat';
   const latestKg=DB.weights.length?DB.weights[DB.weights.length-1].kg:null;
   const wDisp=latestKg?(uImperial()?Math.round(kgToLb(latestKg)):Math.round(latestKg)):'';
@@ -1226,7 +1275,11 @@ function settingsSheet(){
   <div class="swatches" style="margin-bottom:18px">${themes.map(([k,c])=>`<div class="sw ${DB.theme===k?'on':''}" style="background:${c}" onclick="setTheme('${k}')"></div>`).join('')}</div>
   <label>Achievements</label>
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px">${badges.map(([e,t,got])=>`<div class="badge ${got?'got':''}"><div class="b">${e}</div><span>${t}</span></div>`).join('')}</div>
-  <button class="btn ghost" onclick="exportData()">Export my data (JSON)</button>
+  <button class="btn ghost" onclick="copyData()">Copy data to clipboard</button>
+  <div class="ttl" style="margin:18px 4px 10px">Import on this device</div>
+  <div class="field"><label>Paste data from another device</label><textarea id="importJson" rows="3" placeholder="Paste your copied data here…" style="font-size:13px;resize:vertical"></textarea></div>
+  <button class="btn ghost" onclick="importPasted()">Import pasted data</button>
+  <button class="btn ghost" style="margin-top:10px" onclick="exportData()">Download backup (JSON)</button>
   <button class="btn rose" style="margin-top:10px" onclick="resetAll()">Reset all data</button>
   ${fbAuth.currentUser?`<div class="card" style="margin-top:18px;padding:14px 16px"><div style="display:flex;align-items:center;gap:12px"><img src="${fbAuth.currentUser.photoURL||''}" style="width:36px;height:36px;border-radius:50%;background:var(--card2)" onerror="this.style.display='none'"><div class="grow"><div style="font-weight:600;font-size:14px">${fbAuth.currentUser.displayName||'Signed in'}</div><div style="font-size:12px;color:var(--ink2)">${fbAuth.currentUser.email}</div></div></div><button class="btn ghost" style="margin-top:12px" onclick="signOut()">Sign out</button></div>`:''}
   <div class="disc" style="margin-top:14px">Data syncs automatically to the cloud. Physical is for informational & record-keeping purposes only — not medical advice.</div>`;
@@ -1234,6 +1287,9 @@ function settingsSheet(){
 function setTheme(k){DB.theme=k;save();applyTheme();openSheet('settings');}
 function applyTheme(){if(DB.theme==='mint')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',DB.theme);}
 function exportData(){const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='physical-data.json';a.click();}
+function copyData(){const txt=JSON.stringify(DB);if(navigator.clipboard){navigator.clipboard.writeText(txt).then(()=>toast('Data copied — paste it in Settings on your other device')).catch(()=>fallbackCopy(txt));}else fallbackCopy(txt);}
+function fallbackCopy(txt){const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Data copied to clipboard');}catch(e){toast('Copy failed — use Download backup instead');}document.body.removeChild(ta);}
+function importPasted(){const txt=(document.getElementById('importJson')||{}).value||'';if(!txt.trim()){toast('Nothing pasted yet');return;}try{const d=JSON.parse(txt);if(!d.workouts||!d.profile)throw new Error('bad');if(!confirm('Replace all data on this device with the pasted data?'))return;Object.assign(DB,d);save();closeSheet();go('home');toast('Data imported successfully!');}catch(e){toast('Could not read that data — make sure you copied the full text');}}
 function resetAll(){if(confirm('Delete all your Physical data on this device?')){store.set('pepai',null);location.reload();}}
 
 /* toast + boot */
