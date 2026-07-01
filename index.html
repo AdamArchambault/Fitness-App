@@ -551,15 +551,16 @@ function trackRecentFood(f){
   DB.recentFoods.unshift({n:f.n,s:f.s,cal:f.cal,p:f.p,c:f.c,f:f.f});
   if(DB.recentFoods.length>20)DB.recentFoods.length=20;}
 function addCustomFood(meal){const name=v('cf_name')||'Custom food';
-  const food={n:name,s:'1 serving',cal:Math.round(+v('cf_cal')||0),p:+v('cf_p')||0,c:+v('cf_c')||0,f:+v('cf_f')||0};
+  const gps=parseFloat(v('cf_gpserv'))||100;
+  const food={n:name,s:'1 serving',cal:Math.round(+v('cf_cal')||0),p:+v('cf_p')||0,c:+v('cf_c')||0,f:+v('cf_f')||0,gpserv:gps};
   DB.customFoods=DB.customFoods||[];
   if(!DB.customFoods.some(x=>x.n.toLowerCase()===food.n.toLowerCase()))DB.customFoods.push(food);
   trackRecentFood(food);
-  let s,serv,q;
-  if(cfMode==='gram'){const g=parseFloat(v('cf_gram'))||100;s=g/100;serv=g+'g';q=1;}
-  else{s=parseFloat(v('cf_serv'))||1;serv='1 serving';q=s;}
+  let s;
+  if(cfMode==='gram'){const g=parseFloat(v('cf_gram'))||gps;s=g/gps;}
+  else{s=parseFloat(v('cf_serv'))||1;}
   const m=getDayMeals(todayKey());
-  m[meal].push({name:food.n,serv,q,cal:Math.round(food.cal*s),p:+(food.p*s).toFixed(1),c:+(food.c*s).toFixed(1),f:+(food.f*s).toFixed(1)});
+  m[meal].push({name:food.n,serv:'1 serving',q:s,gpserv:gps,cal:Math.round(food.cal*s),p:+(food.p*s).toFixed(1),c:+(food.c*s).toFixed(1),f:+(food.f*s).toFixed(1)});
   save();closeSheet();go('food');toast('Added to '+MEAL_LBL[meal]);}
 /* diary history */
 function foodHistorySheet(){return `<h2>Diary history</h2>
@@ -1030,40 +1031,48 @@ function updateToggleBtns(idPrefix,mode){
   else{bg.style.background='var(--mint)';bg.style.borderColor='var(--mint)';bg.style.color='var(--on-accent)';bs.style.background='transparent';bs.style.borderColor='var(--line2)';bs.style.color='var(--ink2)';}
   document.getElementById(idPrefix+'_servRow').style.display=mode==='serv'?'':'none';
   document.getElementById(idPrefix+'_gramRow').style.display=mode==='gram'?'':'none';}
+function parseServGrams(s){
+  if(!s)return null;
+  let m=(s+'').match(/\((\d+(?:\.\d+)?)\s*(?:g|ml)\)/i);if(m)return parseFloat(m[1]);
+  m=(s+'').match(/^(\d+(?:\.\d+)?)\s*(?:g|ml)$/i);if(m)return parseFloat(m[1]);
+  return null;}
 
 /* ---- food item sheet (from search) ---- */
-function foodItemSheet(idx,meal){const f=CUR[idx];if(!f)return'';fiMode='serv';
+function foodItemSheet(idx,meal){const f=CUR[idx];if(!f)return'';fiMode='serv';window._fiGpS=parseServGrams(f.s)||100;
   return `<h2>${f.n}</h2><div class="muted" style="margin-bottom:10px">${f.s} · ${f.cal} kcal · ${f.p}p ${f.c}c ${f.f}f</div>
   <div class="field"><label>Meal</label><select id="fi_meal">${MEAL_KEYS.map(k=>`<option value="${k}" ${k===meal?'selected':''}>${MEAL_LBL[k]}</option>`).join('')}</select></div>
   ${servToggleHTML('fi','setFiMode')}
   <div id="fi_servRow"><label>Servings</label><div class="stepper"><button onclick="stepFi(-1)">−</button>
     <input id="fi_serv" type="number" inputmode="decimal" value="1" step="1" oninput="calcServ(${idx})"><button onclick="stepFi(1)">+</button></div></div>
   <div id="fi_gramRow" style="display:none"><label>Amount (g/mL)</label><div class="stepper"><button onclick="stepFiG(-10)">−</button>
-    <input id="fi_gram" type="number" inputmode="decimal" value="100" step="1" oninput="calcServ(${idx})"><button onclick="stepFiG(10)">+</button></div></div>
+    <input id="fi_gram" type="number" inputmode="decimal" value="${window._fiGpS}" step="1" oninput="calcServ(${idx})"><button onclick="stepFiG(10)">+</button></div></div>
   <div class="calcout" id="fi_out"></div>
   <button class="btn" style="margin-top:12px" onclick="addFood(${idx},document.getElementById('fi_meal').value)">Add to diary</button>`;}
-function setFiMode(m){
-  if(m==='gram'){const el=document.getElementById('fi_gram');if(el)el.value=Math.round((parseFloat(v('fi_serv'))||1)*100);}
-  else{const el=document.getElementById('fi_serv');if(el)el.value=+((parseFloat(v('fi_gram'))||100)/100).toFixed(2);}
+function setFiMode(m){const gps=window._fiGpS||100;
+  if(m==='gram'){const el=document.getElementById('fi_gram');if(el)el.value=Math.round((parseFloat(v('fi_serv'))||1)*gps);}
+  else{const el=document.getElementById('fi_serv');if(el)el.value=+((parseFloat(v('fi_gram'))||gps)/gps).toFixed(2);}
   fiMode=m;updateToggleBtns('fi',m);calcServ(window._fiIdx);}
 function stepFi(d){const el=document.getElementById('fi_serv');el.value=Math.max(1,(parseInt(el.value)||1)+d);el.dispatchEvent(new Event('input'));}
 function stepFiG(d){const el=document.getElementById('fi_gram');el.value=Math.max(1,(parseFloat(el.value)||100)+d);el.dispatchEvent(new Event('input'));}
 function calcServ(idx){window._fiIdx=idx;const f=CUR[idx];if(!f)return;const o=document.getElementById('fi_out');if(!o)return;
-  let s;if(fiMode==='gram'){const g=parseFloat(v('fi_gram'))||100;s=g/100;}else{s=parseFloat(v('fi_serv'))||1;}
+  const gps=window._fiGpS||100;
+  let s;if(fiMode==='gram'){const g=parseFloat(v('fi_gram'))||gps;s=g/gps;}else{s=parseFloat(v('fi_serv'))||1;}
   o.innerHTML=`<div class="big">${Math.round(f.cal*s)} <span style="font-size:16px">kcal</span></div><div class="muted">${(f.p*s).toFixed(1)}g protein · ${(f.c*s).toFixed(1)}g carbs · ${(f.f*s).toFixed(1)}g fat</div>`;}
 function addFood(idx,meal){const f=CUR[idx];if(!f)return;
-  let s;if(fiMode==='gram'){const g=parseFloat(v('fi_gram'))||100;s=g/100;}else{s=parseFloat(v('fi_serv'))||1;}
+  const gps=window._fiGpS||100;
+  let s;if(fiMode==='gram'){const g=parseFloat(v('fi_gram'))||gps;s=g/gps;}else{s=parseFloat(v('fi_serv'))||1;}
   const m=getDayMeals(todayKey());
-  m[meal].push({name:f.n,serv:fiMode==='gram'?(v('fi_gram')+'g'):f.s,q:fiMode==='gram'?1:s,cal:Math.round(f.cal*s),p:+(f.p*s).toFixed(1),c:+(f.c*s).toFixed(1),f:+(f.f*s).toFixed(1)});
+  m[meal].push({name:f.n,serv:f.s,q:s,gpserv:gps,cal:Math.round(f.cal*s),p:+(f.p*s).toFixed(1),c:+(f.c*s).toFixed(1),f:+(f.f*s).toFixed(1)});
   trackRecentFood(f);save();closeSheet();go('food');toast(f.n+' added');}
 
 /* ---- custom food sheet ---- */
-function customFoodSheet(meal){cfMode='serv';return `<h2>Custom food</h2><div class="muted" style="margin-bottom:12px">Macros are per serving / per 100g.</div>
+function customFoodSheet(meal){cfMode='serv';return `<h2>Custom food</h2><div class="muted" style="margin-bottom:12px">Macros are per serving.</div>
   <div class="field"><label>Name</label><input id="cf_name" placeholder="e.g. Homemade smoothie"></div>
   <div class="two"><div class="field"><label>Calories</label><input id="cf_cal" type="number" inputmode="decimal" oninput="calcCfServ()"></div>
     <div class="field"><label>Protein (g)</label><input id="cf_p" type="number" inputmode="decimal" oninput="calcCfServ()"></div></div>
   <div class="two"><div class="field"><label>Carbs (g)</label><input id="cf_c" type="number" inputmode="decimal" oninput="calcCfServ()"></div>
     <div class="field"><label>Fat (g)</label><input id="cf_f" type="number" inputmode="decimal" oninput="calcCfServ()"></div></div>
+  <div class="field"><label>Serving size (g/mL)</label><input id="cf_gpserv" type="number" inputmode="decimal" placeholder="e.g. 28" oninput="calcCfServ()"></div>
   ${servToggleHTML('cf','setCfMode')}
   <div id="cf_servRow"><label>Servings</label><div class="stepper"><button onclick="stepCfServ(-1)">−</button>
     <input id="cf_serv" type="number" inputmode="decimal" value="1" step="1" oninput="calcCfServ()"><button onclick="stepCfServ(1)">+</button></div></div>
@@ -1071,48 +1080,53 @@ function customFoodSheet(meal){cfMode='serv';return `<h2>Custom food</h2><div cl
     <input id="cf_gram" type="number" inputmode="decimal" value="100" step="1" oninput="calcCfServ()"><button onclick="stepCfGram(10)">+</button></div></div>
   <div class="calcout" id="cf_out"></div>
   <button class="btn" style="margin-top:12px" onclick="addCustomFood('${meal}')">Add to diary</button>`;}
-function setCfMode(m){
-  if(m==='gram'){const el=document.getElementById('cf_gram');if(el)el.value=Math.round((parseFloat(v('cf_serv'))||1)*100);}
-  else{const el=document.getElementById('cf_serv');if(el)el.value=+((parseFloat(v('cf_gram'))||100)/100).toFixed(2);}
+function setCfMode(m){const gps=parseFloat(v('cf_gpserv'))||100;
+  if(m==='gram'){const el=document.getElementById('cf_gram');if(el)el.value=Math.round((parseFloat(v('cf_serv'))||1)*gps);}
+  else{const el=document.getElementById('cf_serv');if(el)el.value=+((parseFloat(v('cf_gram'))||gps)/gps).toFixed(2);}
   cfMode=m;updateToggleBtns('cf',m);calcCfServ();}
 function stepCfServ(d){const el=document.getElementById('cf_serv');el.value=Math.max(1,(parseInt(el.value)||1)+d);calcCfServ();}
 function stepCfGram(d){const el=document.getElementById('cf_gram');el.value=Math.max(1,(parseFloat(el.value)||100)+d);calcCfServ();}
 function calcCfServ(){const o=document.getElementById('cf_out');if(!o)return;
-  let s;if(cfMode==='gram'){s=(parseFloat(v('cf_gram'))||100)/100;}else{s=parseFloat(v('cf_serv'))||1;}
+  const gps=parseFloat(v('cf_gpserv'))||100;
+  let s;if(cfMode==='gram'){s=(parseFloat(v('cf_gram'))||gps)/gps;}else{s=parseFloat(v('cf_serv'))||1;}
   const cal=Math.round((+v('cf_cal')||0)*s),p=((+v('cf_p')||0)*s).toFixed(1),c=((+v('cf_c')||0)*s).toFixed(1),f=((+v('cf_f')||0)*s).toFixed(1);
   o.innerHTML=`<div class="big">${cal} <span style="font-size:16px">kcal</span></div><div class="muted">${p}g protein · ${c}g carbs · ${f}g fat</div>`;}
 
 /* ---- edit existing diary entry ---- */
 function editFoodSheet(meal,idx){const m=getDayMeals(todayKey());const e=m[meal][idx];if(!e)return'';editMode='serv';
+  const gps=e.gpserv||parseServGrams(e.serv)||100;window._editGpS=gps;
+  const gramDef=Math.round(e.q*gps);
   return `<h2>${e.name}</h2><div class="muted" style="margin-bottom:10px">${e.serv}</div>
   <div class="field"><label>Meal</label><select id="ef_meal">${MEAL_KEYS.map(k=>`<option value="${k}" ${k===meal?'selected':''}>${MEAL_LBL[k]}</option>`).join('')}</select></div>
   ${servToggleHTML('ef','setEditMode')}
   <div id="ef_servRow"><label>Servings</label><div class="stepper"><button onclick="stepEf(-1)">−</button>
     <input id="ef_serv" type="number" inputmode="decimal" value="${e.q}" step="1" oninput="calcEditServ()"><button onclick="stepEf(1)">+</button></div></div>
   <div id="ef_gramRow" style="display:none"><label>Amount (g/mL)</label><div class="stepper"><button onclick="stepEfG(-10)">−</button>
-    <input id="ef_gram" type="number" inputmode="decimal" value="100" step="1" oninput="calcEditServ()"><button onclick="stepEfG(10)">+</button></div></div>
+    <input id="ef_gram" type="number" inputmode="decimal" value="${gramDef}" step="1" oninput="calcEditServ()"><button onclick="stepEfG(10)">+</button></div></div>
   <div class="calcout" id="ef_out"></div>
   <div style="display:flex;gap:10px;margin-top:12px">
     <button class="btn" style="flex:2" onclick="saveEditFood('${meal}',${idx})">Save changes</button>
     <button class="btn rose" style="flex:1" onclick="delFood('${meal}',${idx})">Delete</button>
   </div>`;}
-function setEditMode(m){
-  if(m==='gram'){const el=document.getElementById('ef_gram');if(el)el.value=Math.round((parseFloat(v('ef_serv'))||1)*100);}
-  else{const el=document.getElementById('ef_serv');if(el)el.value=+((parseFloat(v('ef_gram'))||100)/100).toFixed(2);}
+function setEditMode(m){const gps=window._editGpS||100;
+  if(m==='gram'){const el=document.getElementById('ef_gram');if(el)el.value=Math.round((parseFloat(v('ef_serv'))||1)*gps);}
+  else{const el=document.getElementById('ef_serv');if(el)el.value=+((parseFloat(v('ef_gram'))||gps)/gps).toFixed(2);}
   editMode=m;updateToggleBtns('ef',m);calcEditServ();}
 function stepEf(d){const el=document.getElementById('ef_serv');el.value=Math.max(1,(parseInt(el.value)||1)+d);calcEditServ();}
 function stepEfG(d){const el=document.getElementById('ef_gram');el.value=Math.max(1,(parseFloat(el.value)||100)+d);calcEditServ();}
 function calcEditServ(){const meal=v('ef_meal')||MEAL_KEYS[0];const idx=window._editIdx||0;
   const m=getDayMeals(todayKey());const e=m[meal]||[];const entry=e[idx]||window._editEntry;if(!entry)return;
   const o=document.getElementById('ef_out');if(!o)return;
-  let s;if(editMode==='gram'){s=(parseFloat(v('ef_gram'))||100)/100;}else{s=parseFloat(v('ef_serv'))||1;}
+  const gps=window._editGpS||100;
+  let s;if(editMode==='gram'){s=(parseFloat(v('ef_gram'))||gps)/gps;}else{s=parseFloat(v('ef_serv'))||1;}
   const base=window._editBase||{cal:entry.cal/entry.q,p:entry.p/entry.q,c:entry.c/entry.q,f:entry.f/entry.q};
   o.innerHTML=`<div class="big">${Math.round(base.cal*s)} <span style="font-size:16px">kcal</span></div><div class="muted">${(base.p*s).toFixed(1)}g protein · ${(base.c*s).toFixed(1)}g carbs · ${(base.f*s).toFixed(1)}g fat</div>`;}
 function saveEditFood(meal,idx){const m=getDayMeals(todayKey());const e=m[meal][idx];if(!e)return;
+  const gps=window._editGpS||100;
   const base={cal:e.cal/e.q,p:e.p/e.q,c:e.c/e.q,f:e.f/e.q};
-  let s,serv;if(editMode==='gram'){s=(parseFloat(v('ef_gram'))||100)/100;serv=v('ef_gram')+'g';}else{s=parseFloat(v('ef_serv'))||1;serv=e.serv;}
+  let s;if(editMode==='gram'){s=(parseFloat(v('ef_gram'))||gps)/gps;}else{s=parseFloat(v('ef_serv'))||1;}
   const newMeal=v('ef_meal')||meal;
-  const updated={name:e.name,serv,q:editMode==='gram'?1:s,cal:Math.round(base.cal*s),p:+(base.p*s).toFixed(1),c:+(base.c*s).toFixed(1),f:+(base.f*s).toFixed(1)};
+  const updated={name:e.name,serv:e.serv,q:s,gpserv:gps,cal:Math.round(base.cal*s),p:+(base.p*s).toFixed(1),c:+(base.c*s).toFixed(1),f:+(base.f*s).toFixed(1)};
   m[meal].splice(idx,1);
   getDayMeals(todayKey())[newMeal].push(updated);
   save();closeSheet();go('food');toast('Entry updated');}
