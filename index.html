@@ -550,13 +550,17 @@ function trackRecentFood(f){
   DB.recentFoods=DB.recentFoods.filter(x=>x.n.toLowerCase()!==f.n.toLowerCase());
   DB.recentFoods.unshift({n:f.n,s:f.s,cal:f.cal,p:f.p,c:f.c,f:f.f});
   if(DB.recentFoods.length>20)DB.recentFoods.length=20;}
-function addCustomFood(meal){const name=v('cf_name')||'Custom food';const s=parseFloat(v('cf_serv'))||1;
+function addCustomFood(meal){const name=v('cf_name')||'Custom food';
   const food={n:name,s:'1 serving',cal:Math.round(+v('cf_cal')||0),p:+v('cf_p')||0,c:+v('cf_c')||0,f:+v('cf_f')||0};
-  const m=getDayMeals(todayKey());
-  m[meal].push({name:food.n,serv:food.s,q:s,cal:Math.round(food.cal*s),p:+(food.p*s).toFixed(1),c:+(food.c*s).toFixed(1),f:+(food.f*s).toFixed(1)});
   DB.customFoods=DB.customFoods||[];
   if(!DB.customFoods.some(x=>x.n.toLowerCase()===food.n.toLowerCase()))DB.customFoods.push(food);
-  trackRecentFood(food);save();closeSheet();go('food');toast('Added to '+MEAL_LBL[meal]);}
+  trackRecentFood(food);
+  let s,serv,q;
+  if(cfMode==='gram'){const g=parseFloat(v('cf_gram'))||100;s=g/100;serv=g+'g';q=1;}
+  else{s=parseFloat(v('cf_serv'))||1;serv='1 serving';q=s;}
+  const m=getDayMeals(todayKey());
+  m[meal].push({name:food.n,serv,q,cal:Math.round(food.cal*s),p:+(food.p*s).toFixed(1),c:+(food.c*s).toFixed(1),f:+(food.f*s).toFixed(1)});
+  save();closeSheet();go('food');toast('Added to '+MEAL_LBL[meal]);}
 /* diary history */
 function foodHistorySheet(){return `<h2>Diary history</h2>
   <div class="field" style="margin-top:8px"><input id="histSearch" placeholder="🔍 Filter by food name…" oninput="renderHistResults(this.value)"></div>
