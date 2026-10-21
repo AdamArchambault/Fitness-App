@@ -293,7 +293,7 @@ function ic(n,sz,c){const z=sz||22;const P={
 /* state + migration */
 let DB=store.get('pepai',null);
 if(!DB){
-  DB={"profile":{"name":"","start":1781147191636,"heightCm":183,"sex":"m","age":25,"activity":1.55},"theme":"mint","pro":false,"unit":"kg","units":"imperial","inventory":[],"doses":[],"weights":[{"date":"2026-06-12","kg":84.46},{"date":"2026-06-16","kg":86}],"water":{"2026-06-11":32},"sleep":[{"date":"2026-06-12","hours":8.4,"quality":0},{"date":"2026-06-12","hours":7.8,"quality":0}],"sites":{"l-arm":1781148004156,"l-abdo":1781148003705,"r-abdo":1781148003939,"r-arm":1781148003456,"l-thigh":1781147998055,"r-thigh":1781147997820,"l-glute":1781147997470,"r-glute":1781147997022},"nutritionGoals":{"cal":2700,"p":200,"c":349,"f":56,"autoCalc":"carbs"},"meals":{"2026-06-11":{"breakfast":[],"lunch":[],"dinner":[],"snacks":[]},"2026-06-12":{"breakfast":[],"lunch":[],"dinner":[],"snacks":[]},"2026-06-13":{"breakfast":[],"lunch":[],"dinner":[],"snacks":[]},"2026-06-15":{"breakfast":[],"lunch":[],"dinner":[],"snacks":[]},"2026-06-16":{"breakfast":[],"lunch":[],"dinner":[],"snacks":[]},"2026-06-17":{"breakfast":[],"lunch":[],"dinner":[],"snacks":[]}},"workouts":[{"start":1781218425785,"name":"Push (Thursday)","exercises":[{"name":"Incline Press (New Machine)","sets":[{"reps":15,"weight":135,"rest":90},{"reps":15,"weight":225,"rest":90},{"reps":10,"weight":315,"rest":90},{"reps":7,"weight":315,"rest":15},{"reps":8,"weight":225,"rest":90}]},{"name":"Sliding Ab Crunch (4 height)","sets":[{"reps":20,"weight":0,"rest":90},{"reps":20,"weight":0,"rest":90},{"reps":20,"weight":0,"rest":90}]},{"name":"DB pullovers","sets":[{"reps":10,"weight":60,"rest":90},{"reps":10,"weight":60,"rest":90}]},{"name":"Cable flies (8 height)","sets":[{"reps":15,"weight":30,"rest":90},{"reps":12,"weight":40,"rest":90},{"reps":6,"weight":50,"rest":90}]},{"name":"Tricep Press","sets":[{"reps":15,"weight":150,"rest":60},{"reps":12,"weight":205,"rest":60},{"reps":10,"weight":235,"rest":60}]},{"name":"V-bar cable delt raise","sets":[{"reps":12,"weight":30,"rest":60},{"reps":10,"weight":40,"rest":60},{"reps":12,"weight":50,"rest":60},{"reps":12,"weight":60,"rest":60}]}],"durationSec":4202,"date":"2026-06-12T00:03:47.665Z"},{"start":1781301045254,"name":"Pull (Friday)","exercises":[{"name":"Pull-up","sets":[{"reps":15,"weight":0,"rest":90},{"reps":10,"weight":0,"rest":90},{"reps":8,"weight":0,"rest":90},{"reps":6,"weight":0,"rest":90},{"reps":6,"weight":0,"rest":90}]},{"name":"Lat Pulldown (V-bar)","sets":[{"reps":12,"weight":85,"rest":90},{"reps":12,"weight":115,"rest":90},{"reps":12,"weight":145,"rest":90},{"reps":5,"weight":175,"rest":90}]},{"name":"Bicep Curl","sets":[{"reps":10,"weight":45,"rest":90},{"reps":8,"weight":45,"rest":90},{"reps":6,"weight":45,"rest":90}]},{"name":"DB Shrugs","sets":[{"reps":15,"weight":45,"rest":90},{"reps":15,"weight":45,"rest":90},{"reps":15,"weight":45,"rest":90}]},{"name":"Bosu Crunches","sets":[{"reps":12,"weight":0,"rest":60},{"reps":12,"weight":0,"rest":60},{"reps":12,"weight":0,"rest":60}]}],"durationSec":3226,"date":"2026-06-12T22:44:31.454Z"},{"start":1781360406616,"name":"Legs (Saturday)","exercises":[{"name":"Hip Adductors","sets":[{"reps":20,"weight":90,"rest":60},{"reps":20,"weight":110,"rest":60},{"reps":20,"weight":130,"rest":60},{"reps":10,"weight":150,"rest":60}]},{"name":"Hip Abductors","sets":[{"reps":20,"weight":120,"rest":60},{"reps":20,"weight":150,"rest":60},{"reps":20,"weight":150,"rest":60}]},{"name":"Quad Extension (Single-leg)","sets":[{"reps":12,"weight":50,"rest":90},{"reps":12,"weight":50,"rest":90},{"reps":10,"weight":50,"rest":90}]}],"durationSec":4205,"date":"2026-06-13T15:30:11.758Z"},{"start":1781526867416,"name":"Push (Monday)","exercises":[{"name":"Cable Face-pulls","sets":[{"reps":15,"weight":40,"rest":60},{"reps":15,"weight":40,"rest":60},{"reps":15,"weight":40,"rest":60}]},{"name":"Incline Smith (Angle #4)","sets":[{"reps":15,"weight":135,"rest":90},{"reps":12,"weight":185,"rest":90},{"reps":5,"weight":225,"rest":90},{"reps":8,"weight":205,"rest":90},{"reps":7,"weight":185,"rest":0},{"reps":12,"weight":135,"rest":90}]},{"name":"Smith Shoulder Press (Angle #7)","sets":[{"reps":12,"weight":135,"rest":90},{"reps":12,"weight":135,"rest":90},{"reps":10,"weight":135,"rest":90}]},{"name":"Cable Flies (Angle #8)","sets":[{"reps":12,"weight":30,"rest":90},{"reps":12,"weight":30,"rest":90},{"reps":12,"weight":30,"rest":90}]},{"name":"Cable Flies $$ Cable Presses","sets":[{"reps":12,"weight":20,"rest":60},{"reps":10,"weight":30,"rest":60},{"reps":10,"weight":30,"rest":60}]}],"durationSec":3518,"date":"2026-06-15T13:33:05.496Z"},{"start":1781626486943,"name":"Pull (Tuesday)","exercises":[{"name":"Pull-up","sets":[{"reps":15,"weight":0,"rest":120},{"reps":10,"weight":0,"rest":120},{"reps":8,"weight":0,"rest":120},{"reps":7,"weight":0,"rest":120}]},{"name":"Supinated Lat Pulldown","sets":[{"reps":12,"weight":115,"rest":90},{"reps":10,"weight":145,"rest":90},{"reps":8,"weight":175,"rest":90}]},{"name":"Bicep curls (heavy)","sets":[{"reps":8,"weight":50,"rest":90},{"reps":6,"weight":50,"rest":90},{"reps":6,"weight":50,"rest":90}]},{"name":"DB Shrugs","sets":[{"reps":12,"weight":50,"rest":60},{"reps":12,"weight":50,"rest":60},{"reps":12,"weight":50,"rest":60}]},{"name":"Hammer Curls","sets":[{"reps":6,"weight":50,"rest":60},{"reps":6,"weight":50,"rest":60},{"reps":6,"weight":50,"rest":60}]},{"name":"Bicep curls (Volume)","sets":[{"reps":15,"weight":25,"rest":60},{"reps":15,"weight":25,"rest":60},{"reps":15,"weight":25,"rest":60}]}],"durationSec":3391,"date":"2026-06-16T17:12:17.844Z"},{"start":1781735368527,"name":"Legs (Wednesday)","exercises":[{"name":"Hip Adductors","sets":[{"reps":20,"weight":110,"rest":60},{"reps":20,"weight":130,"rest":60},{"reps":15,"weight":150,"rest":60}]},{"name":"Hip Abductors","sets":[{"reps":20,"weight":120,"rest":60},{"reps":20,"weight":140,"rest":60},{"reps":20,"weight":160,"rest":60}]},{"name":"Quad Extension (single-leg)","sets":[{"reps":12,"weight":60,"rest":60},{"reps":12,"weight":60,"rest":60},{"reps":12,"weight":60,"rest":60},{"reps":10,"weight":60,"rest":60}]},{"name":"Deadhang","sets":[{"reps":60,"weight":0,"rest":60},{"reps":60,"weight":0,"rest":120},{"reps":45,"weight":0,"rest":0}]},{"name":"Bosu Crunches","sets":[{"reps":12,"weight":0,"rest":60},{"reps":12,"weight":0,"rest":60},{"reps":12,"weight":0,"rest":60}]},{"name":"Handstand holds","sets":[{"reps":60,"weight":0,"rest":120},{"reps":55,"weight":0,"rest":120},{"reps":40,"weight":0,"rest":120}]}],"durationSec":3766,"date":"2026-06-17T23:32:14.257Z"}],"activeWorkout":null};
+  DB={"profile":{"name":"","start":Date.now(),"heightCm":null,"sex":"","age":null,"activity":1.55},"theme":"mint","pro":false,"unit":"kg","units":"imperial","inventory":[],"doses":[],"weights":[],"water":{},"sleep":[],"sites":{},"nutritionGoals":{"cal":2500,"p":180,"c":250,"f":65,"autoCalc":"fat"},"meals":{},"workouts":[],"activeWorkout":null};
 }
 DB.pro=DB.pro||false; DB.unit=DB.unit||'kg';
 DB.units=DB.units||(DB.unit==='lb'?'imperial':'metric');
@@ -612,6 +612,7 @@ function stepScan(d){const el=document.getElementById('sa_serv');el.value=Math.m
 /* ---- WORKOUTS (lifting) ---- */
 const LIFTS=['Bench Press','Incline Bench Press','Decline Bench Press','Dumbbell Press','Incline DB Press','Dumbbell Fly','Cable Fly','Pec Deck','Back Squat','Front Squat','Goblet Squat','Deadlift','Romanian Deadlift','Sumo Deadlift','Overhead Press','Arnold Press','Barbell Row','Dumbbell Row','Cable Row','Lat Pulldown','Pull-up','Chin-up','Bicep Curl','Hammer Curl','Preacher Curl','Tricep Pushdown','Skull Crusher','Tricep Dip','Leg Press','Leg Extension','Leg Extension (Single-Leg)','Leg Curl','Leg Curl (Single-Leg)','Nordic Curl','Lateral Raise','Front Raise','Cable Lateral Raise','Calf Raise','Seated Calf Raise','Hip Thrust','Glute Bridge','Cable Kickback','Face Pull','Shrug','Upright Row','Reverse Fly','Plank','Ab Wheel','Hanging Leg Raise','Cable Crunch'];
 let restEnd=null,wkInterval=null,showWkHistory=false,activeExIdx=-1;
+let swActive=false,swT0=0,swAcc=0,swRaf=null;
 function startWkTimer(){if(!wkInterval)wkInterval=setInterval(tick,1000);}
 function tick(){
   const el=document.getElementById('restDisplay');
@@ -631,13 +632,18 @@ function getWorkoutTypeExercises(wkName){const n=(wkName||'').toLowerCase();let 
 
 function startWorkout(name){DB.activeWorkout={start:Date.now(),name:name||('Workout '+(DB.workouts.length+1)),exercises:[]};save();startWkTimer();closeSheet();go('work');}
 function setWkName(val){if(DB.activeWorkout){DB.activeWorkout.name=val;save();}}
-function addExercise(name){if(!DB.activeWorkout)return;const n=(name||'').trim();if(!n)return;DB.activeWorkout.exercises.push({name:n,type:'reps',sets:[]});activeExIdx=DB.activeWorkout.exercises.length-1;save();closeSheet();renderWork();}
+function addExercise(name){if(!DB.activeWorkout)return;const n=(name||'').trim();if(!n)return;DB.activeWorkout.exercises.push({name:n,type:'reps',sets:[],group:null});activeExIdx=DB.activeWorkout.exercises.length-1;save();closeSheet();renderWork();}
 function saveSet(exIdx){const ex=DB.activeWorkout.exercises[exIdx];const val=+v('as_reps')||0,weight=+v('as_weight')||0,rest=+v('as_rest')||0;
   const isTime=ex.type==='time';ex.sets.push(isTime?{duration:val,weight,rest}:{reps:val,weight,rest});activeExIdx=exIdx;save();const t=document.getElementById('as_timer');const startT=t?t.checked:true;closeSheet();renderWork();if(startT&&rest>0)startRest(rest);}
 function saveExName(ei){const name=(document.getElementById('ex_rename')||{}).value||'';if(name.trim())DB.activeWorkout.exercises[ei].name=name.trim();save();closeSheet();renderWork();}
 function setExType(ei,type){DB.activeWorkout.exercises[ei].type=type;save();closeSheet();renderWork();}
 function delSet(exIdx,setIdx){DB.activeWorkout.exercises[exIdx].sets.splice(setIdx,1);save();renderWork();}
 function delExercise(exIdx){DB.activeWorkout.exercises.splice(exIdx,1);save();renderWork();}
+function pairSuperset(ei1,ei2){const exs=DB.activeWorkout.exercises;const maxG=Math.max(0,...exs.map(e=>e.group||0));const g=exs[ei1].group||exs[ei2].group||maxG+1;exs[ei1].group=g;exs[ei2].group=g;save();closeSheet();renderWork();}
+function removeFromSuperset(ei){DB.activeWorkout.exercises[ei].group=null;save();closeSheet();renderWork();}
+function swTick(){if(!swActive)return;const el=document.getElementById('sw_display');if(el)el.textContent=fmtDur(swAcc+(Date.now()-swT0));swRaf=requestAnimationFrame(swTick);}
+function swToggle(){const btn=document.getElementById('sw_btn');if(swActive){swAcc+=Date.now()-swT0;swActive=false;cancelAnimationFrame(swRaf);const secs=Math.round(swAcc/1000);const dur=document.getElementById('as_reps');if(dur)dur.value=secs;if(btn)btn.textContent='Start';}else{swT0=Date.now();swActive=true;if(btn)btn.textContent='Stop';swTick();}}
+function swReset(){swActive=false;swAcc=0;cancelAnimationFrame(swRaf);const el=document.getElementById('sw_display');if(el)el.textContent='0:00';const dur=document.getElementById('as_reps');if(dur)dur.value=0;const btn=document.getElementById('sw_btn');if(btn)btn.textContent='Start';}
 function finishWorkout(){const aw=DB.activeWorkout;if(!aw)return;
   aw.durationSec=Math.round((Date.now()-aw.start)/1000);aw.date=new Date().toISOString();
   DB.workouts.push(aw);DB.activeWorkout=null;restEnd=null;skipRest();save();renderWork();toast('Workout saved 💪');}
@@ -661,13 +667,19 @@ function renderWork(){
       </div>
       <input value="${aw.name}" onchange="setWkName(this.value)" style="background:transparent;border:0;font-size:20px;font-weight:800;padding:4px 0 6px;color:var(--ink)">
     </div>`;
+    const seenSSGroups=new Set();
     aw.exercises.forEach((ex,ei)=>{
       const isActive=ei===timerIdx;
       const isTime=ex.type==='time';
       const prev=getPrevExercise(ex.name);
       const prevVol=prev?prev.exercise.sets.reduce((s,set)=>s+(set.weight||0)*(set.reps||0),0):0;
       const vol=ex.sets.reduce((s,set)=>s+(set.weight||0)*(set.reps||0),0);
-      html+=`<div class="card" style="padding:10px 16px 4px">
+      const inSS=ex.group!=null;
+      const ssFirst=inSS&&!seenSSGroups.has(ex.group);
+      if(inSS)seenSSGroups.add(ex.group);
+      if(ssFirst)html+=`<div style="font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--amber);padding:4px 4px 2px;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="16" r="3"/><path d="M8 11v2a5 5 0 005 5h0M16 13v-2a5 5 0 00-5-5h0"/></svg>SUPERSET</div>`;
+      html+=`<div class="card" style="padding:10px 16px 4px${inSS?';border-left:3px solid var(--amber)':''}">
+
         <div class="exhead">
           <span class="n">${ex.name}</span>
           <div style="display:flex;align-items:center;gap:6px">
@@ -822,6 +834,7 @@ function openSheet(type,a,b){sbody.innerHTML=sheetHTML(type,a,b);scrim.classList
   if(type==='scanadd')setTimeout(()=>calcScan(),0);
   if(type==='goals')setTimeout(()=>macroSplit(),0);
   if(type==='barcode')setTimeout(()=>startBarcode(a),200);
+  if(type==='addset'){swActive=false;swAcc=0;cancelAnimationFrame(swRaf);}
   if(type==='addex')setTimeout(()=>document.getElementById('ex_name')&&document.getElementById('ex_name').focus(),300);
   if(type==='startworkout')setTimeout(()=>{const el=document.getElementById('wk_name');if(el){el.focus();el.select();}},300);
 }
@@ -1206,7 +1219,14 @@ function addExSheet(){
 function filterExList(q){const box=document.getElementById('exList');if(!box)return;q=(q||'').toLowerCase().trim();const m=q?LIFTS.filter(l=>l.toLowerCase().includes(q)):['Bench Press','Back Squat','Deadlift','Overhead Press','Pull-up','Barbell Row','Lat Pulldown','Romanian Deadlift'];box.innerHTML=m.map(l=>`<button class="chip" onclick="addExercise('${l}')">${l}</button>`).join('');}
 function addSetSheet(exIdx){const ex=DB.activeWorkout.exercises[exIdx];const isTime=ex.type==='time';const last=ex.sets[ex.sets.length-1]||{reps:8,duration:30,weight:0,rest:90};
   const firstField=isTime
-    ?`<div class="field"><label>Duration (s)</label><input id="as_reps" type="number" inputmode="numeric" value="${last.duration||30}"></div>`
+    ?`<div style="text-align:center;padding:8px 0 4px">
+      <div id="sw_display" style="font-size:54px;font-weight:850;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--ink)">0:00</div>
+      <div style="display:flex;gap:8px;justify-content:center;margin:8px 0 4px">
+        <button id="sw_btn" class="btn ghost sm" style="width:auto;padding:8px 28px" onclick="swToggle()">Start</button>
+        <button class="btn ghost sm" style="width:auto;padding:8px 16px" onclick="swReset()">Reset</button>
+      </div>
+    </div>
+    <div class="field"><label>Duration (s) — or use stopwatch above</label><input id="as_reps" type="number" inputmode="numeric" value="${last.duration||30}"></div>`
     :`<div class="field"><label>Reps</label><input id="as_reps" type="number" inputmode="numeric" value="${last.reps||8}"></div>`;
   return `<h2>Add set — ${ex.name}</h2>
   <div class="three" style="margin-top:12px">
@@ -1227,7 +1247,12 @@ function exOptionsSheet(ei){const ex=DB.activeWorkout.exercises[ei];const isTime
     <button class="${!isTime?'on':''}" onclick="setExType(${ei},'reps')">${rIco}Reps</button>
     <button class="${isTime?'on':''}" onclick="setExType(${ei},'time')">${tIco}Time</button>
   </div>
-  <button class="btn rose" style="margin-top:8px" onclick="if(confirm('Remove this exercise?')){delExercise(${ei});closeSheet();}">Remove exercise</button>`;}
+  <button class="btn rose" style="margin-top:8px" onclick="if(confirm('Remove this exercise?')){delExercise(${ei});closeSheet();}">Remove exercise</button>
+  <div class="ttl" style="margin:16px 4px 10px">Superset</div>
+  ${ex.group!=null
+    ?`<button class="btn ghost" onclick="removeFromSuperset(${ei})">Remove from superset</button>`
+    :(()=>{const others=DB.activeWorkout.exercises.filter((_,i)=>i!==ei);return others.length?`<div class="muted" style="margin-bottom:8px;font-size:13px">Pair with another exercise to create a superset</div><div class="chips" style="flex-wrap:wrap;overflow:visible">${others.map(e2=>{const ri=DB.activeWorkout.exercises.indexOf(e2);return `<button class="chip" onclick="pairSuperset(${ei},${ri})">${e2.name}</button>`;}).join('')}</div>`:'<div class="muted" style="font-size:13px">Add more exercises to pair into a superset</div>';})()
+  }`;}
 function startWorkoutSheet(){const n='Workout '+(DB.workouts.length+1);
   const recent=[...new Set([...DB.workouts].reverse().map(w=>w.name))].slice(0,8);
   const recentHtml=recent.length?`<label style="margin-bottom:8px">Recent workouts</label><div class="chips" style="flex-wrap:wrap;overflow:visible;margin-bottom:4px">${recent.map(nm=>`<button class="chip" onclick="startWorkout('${nm}')">${nm}</button>`).join('')}</div>`:'';
