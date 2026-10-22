@@ -1219,6 +1219,8 @@ function addExSheet(){
   <button class="btn" style="margin-top:12px" onclick="addExercise(document.getElementById('ex_name').value)">Add</button>`;}
 function filterExList(q){const box=document.getElementById('exList');if(!box)return;q=(q||'').toLowerCase().trim();const m=q?LIFTS.filter(l=>l.toLowerCase().includes(q)):['Bench Press','Back Squat','Deadlift','Overhead Press','Pull-up','Barbell Row','Lat Pulldown','Romanian Deadlift'];box.innerHTML=m.map(l=>`<button class="chip" onclick="addExercise('${l}')">${l}</button>`).join('');}
 function addSetSheet(exIdx){const ex=DB.activeWorkout.exercises[exIdx];const isTime=ex.type==='time';const last=ex.sets[ex.sets.length-1]||{reps:8,duration:30,weight:0,rest:90};
+  let defaultRest=last.rest||90;
+  if(ex.group!=null){const grp=DB.activeWorkout.exercises.map((e,i)=>({e,i})).filter(({e})=>e.group===ex.group);const pos=grp.findIndex(({i})=>i===exIdx);defaultRest=pos===grp.length-1?90:0;}
   const firstField=isTime
     ?`<div style="padding:8px 0 4px">
       <div id="sw_display" style="display:block;width:100%;font-size:clamp(44px,11vw,72px);font-weight:850;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--ink);text-align:center;line-height:1.05">0:00.00</div>
@@ -1231,8 +1233,8 @@ function addSetSheet(exIdx){const ex=DB.activeWorkout.exercises[exIdx];const isT
     :`<div class="field"><label>Reps</label><input id="as_reps" type="number" inputmode="numeric" value="${last.reps||8}"></div>`;
   return `<h2>Add set — ${ex.name}</h2>
   ${isTime
-    ?`<div style="margin-top:12px">${firstField}<div class="field"><label>Rest (s)</label><input id="as_rest" type="number" inputmode="numeric" value="${last.rest||90}"></div></div>`
-    :`<div class="three" style="margin-top:12px">${firstField}<div class="field"><label>Weight (${wUnit()})</label><input id="as_weight" type="number" inputmode="decimal" value="${last.weight||0}"></div><div class="field"><label>Rest (s)</label><input id="as_rest" type="number" inputmode="numeric" value="${last.rest||90}"></div></div>`
+    ?`<div style="margin-top:12px">${firstField}<div class="field"><label>Rest (s)</label><input id="as_rest" type="number" inputmode="numeric" value="${defaultRest}"></div></div>`
+    :`<div class="three" style="margin-top:12px">${firstField}<div class="field"><label>Weight (${wUnit()})</label><input id="as_weight" type="number" inputmode="decimal" value="${last.weight||0}"></div><div class="field"><label>Rest (s)</label><input id="as_rest" type="number" inputmode="numeric" value="${defaultRest}"></div></div>`
   }
   <label style="display:flex;align-items:center;gap:8px;margin:4px 2px 14px"><input type="checkbox" id="as_timer" checked style="width:auto"> Start rest timer after adding</label>
   <button class="btn" onclick="saveSet(${exIdx})">Add set</button>`;}
