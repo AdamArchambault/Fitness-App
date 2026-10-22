@@ -226,7 +226,6 @@
   <div class="pages">
     <section class="page on" id="p-home"></section>
     <section class="page" id="p-food"></section>
-    <section class="page" id="p-inv"></section>
     <section class="page" id="p-work"></section>
     <section class="page" id="p-body"></section>
   </div>
@@ -237,8 +236,6 @@
     <button class="tab" data-tab="food" onclick="go('food')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v8a3 3 0 006 0V3M9 3v18M16 3c-1.5 0-2 3-2 6s.5 4 2 4v8"/></svg>Food</button>
     <button class="tab fab" onclick="openSheet('pick')"><span class="plus">+</span></button>
-    <button class="tab" data-tab="inv" onclick="go('inv')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21l-4-4 10-10 4 4-10 10zM13 5l6 6M16 2l2 2"/></svg>Protocol</button>
     <button class="tab" data-tab="work" onclick="go('work')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9v6M6 8v8M18 8v8M21 9v6M6 12h12"/></svg>Workout</button>
   </nav>
@@ -294,7 +291,7 @@ function ic(n,sz,c){const z=sz||22;const P={
 /* state + migration */
 let DB=store.get('pepai',null);
 if(!DB){
-  DB={"profile":{"name":"","start":Date.now(),"heightCm":null,"sex":"","age":null,"activity":1.55},"theme":"mint","pro":false,"unit":"kg","units":"imperial","inventory":[],"doses":[],"weights":[],"water":{},"sleep":[],"sites":{},"nutritionGoals":{"cal":2500,"p":180,"c":250,"f":65,"autoCalc":"fat"},"meals":{},"workouts":[],"activeWorkout":null};
+  DB={"profile":{"name":"","start":Date.now(),"heightCm":null,"sex":"","age":null,"activity":1.55},"theme":"mint","pro":false,"unit":"kg","units":"imperial","weights":[],"water":{},"sleep":[],"nutritionGoals":{"cal":2500,"p":180,"c":250,"f":65,"autoCalc":"fat"},"meals":{},"workouts":[],"activeWorkout":null};
 }
 DB.pro=DB.pro||false; DB.unit=DB.unit||'kg';
 DB.units=DB.units||(DB.unit==='lb'?'imperial':'metric');
@@ -326,7 +323,7 @@ function dispWeight(kg){return uImperial()?Math.round(kgToLb(kg)*10)/10:Math.rou
 
 let waterGoal=DB.waterGoal||80;
 function streak(){let s=0,d=new Date();for(;;){const k=localDateKey(d);
-  const has=DB.doses.some(x=>x.date.slice(0,10)===k)||(DB.water[k]>0)||DB.weights.some(w=>w.date===k)||(DB.meals[k]&&Object.values(DB.meals[k]).some(a=>a.length))||DB.workouts.some(w=>w.date&&w.date.slice(0,10)===k);
+  const has=(DB.water[k]>0)||DB.weights.some(w=>w.date===k)||(DB.meals[k]&&Object.values(DB.meals[k]).some(a=>a.length))||DB.workouts.some(w=>w.date&&w.date.slice(0,10)===k);
   if(has){s++;d.setDate(d.getDate()-1);}else if(k===todayKey()){d.setDate(d.getDate()-1);}else break;if(s>365)break;}return s;}
 
 /* nutrition */
@@ -359,7 +356,6 @@ function defaultMeal(){const h=new Date().getHours();return h<11?'breakfast':h<1
 const titles={
   home:['Today','Your daily overview'],
   food:['Food','Calories, macros & meals'],
-  inv:['Protocol','Compounds, doses & tools'],
   work:['Workout','Log lifts, sets & rest'],
   body:['Body','Weight & sleep history']};
 let bodyTab='weight';
@@ -373,7 +369,6 @@ function go(t){
   window.scrollTo(0,0);
   if(t==='home')renderHome();
   if(t==='food')renderFood();
-  if(t==='inv')renderInv();
   if(t==='work'){renderWork();startWkTimer();}
   if(t==='body')renderBody();
 }
@@ -383,24 +378,13 @@ function renderHome(){
   const water=DB.water[todayKey()]||0,wp=Math.min(100,Math.round(water/waterGoal*100));
   const lastW=DB.weights[DB.weights.length-1];
   const lastSleep=DB.sleep[DB.sleep.length-1];
-  const todayDoses=DB.doses.filter(d=>d.date.slice(0,10)===todayKey());
   const tot=dayTotals(todayKey()),rem=DB.nutritionGoals.cal-tot.cal;
   const lastWk=DB.workouts[DB.workouts.length-1];
 
   let html=`<div class="hero"><div class="stats">
     <div class="stat"><b>${streak()}</b><span>day streak 🔥</span></div>
-    <div class="stat"><b>${todayDoses.length}</b><span>doses today</span></div>
     <div class="stat"><b>${tot.cal}</b><span>kcal eaten</span></div>
   </div></div>`;
-
-  html+=`<div class="ttl">Today's protocol</div><div class="card">`;
-  if(todayDoses.length){
-    html+=todayDoses.map(d=>{const inv=DB.inventory.find(i=>i.id===d.invId)||{};
-      return `<div class="li"><div class="dot">${inv.emoji||'💉'}</div>
-      <div class="grow"><div class="t">${d.name}</div><div class="d">${d.amount} ${d.unit} · ${d.site||'site n/a'}</div></div>
-      <div class="r">${fmtTime(d.date)}</div></div>`;}).join('');
-  } else html+=`<div class="empty">Nothing logged yet today.<br>Tap <b style="color:var(--mint)">+</b> to log a dose.</div>`;
-  html+=`</div><button class="btn ghost" style="margin-top:-6px;margin-bottom:14px" onclick="openSheet('log')">+ Log dose</button>`;
 
   html+=`<div class="card tap" onclick="go('food')">
     <div class="rowflex"><div class="grow">
@@ -438,7 +422,6 @@ function renderHome(){
   </div>`;
 
   html+=insightsCard();
-  html+=`<div class="disc">⚠︎ For informational & record-keeping only. Not medical advice. Consult a qualified healthcare professional.</div>`;
   document.getElementById('p-home').innerHTML=html;
 }
 function weightTrend(){if(DB.weights.length<2)return 'first entry';const a=DB.weights[DB.weights.length-2].kg,b=DB.weights[DB.weights.length-1].kg;const d=(dispWeight(b)-dispWeight(a)).toFixed(1);return (d>0?'▲ +':'▼ ')+d+' '+wUnit();}
@@ -450,45 +433,6 @@ function insightsCard(){
 function addWater(oz){DB.water[todayKey()]=(DB.water[todayKey()]||0)+oz;save();const on=document.querySelector('.page.on');if(on&&on.id==='p-home')renderHome();else renderFood();}
 function addWaterCustom(){const val=prompt('How many oz?');if(val===null)return;const oz=parseFloat(val);if(!oz||oz<=0)return;addWater(oz);}
 function removeWater(){const cur=DB.water[todayKey()]||0;const val=prompt('Remove how many oz? (current: '+cur+' oz)');if(val===null)return;const oz=parseFloat(val);if(!oz||oz<=0)return;DB.water[todayKey()]=Math.max(0,cur-oz);save();const on=document.querySelector('.page.on');if(on&&on.id==='p-home')renderHome();else renderFood();}
-
-/* INVENTORY */
-let invView='stack';
-function renderInv(){
-  let html=`<div class="seg">
-    <button class="${invView==='stack'?'on':''}" onclick="invView='stack';renderInv()">My Stack</button>
-    <button class="${invView==='tools'?'on':''}" onclick="invView='tools';renderInv()">Peptide Tools</button>
-  </div>`;
-  if(invView==='tools'){
-    html+=`<div class="seg">
-      <button class="${toolTab==='calc'?'on':''}" onclick="toolTab='calc';renderInv()">Calculator</button>
-      <button class="${toolTab==='site'?'on':''}" onclick="toolTab='site';renderInv()">Site Map</button>
-      <button class="${toolTab==='est'?'on':''}" onclick="toolTab='est';renderInv()">Half-life</button>
-    </div>`;
-    if(toolTab==='calc')html+=calcUI();if(toolTab==='site')html+=siteUI();if(toolTab==='est')html+=estUI();
-    document.getElementById('p-inv').innerHTML=html;
-    if(toolTab==='site')paintSites();if(toolTab==='est')drawDecay();
-    return;
-  }
-  html+=`<button class="btn" style="margin-bottom:14px" onclick="openSheet('log')">+ Log dose</button>`;
-  html+=`<div class="ttl">Compounds (${DB.inventory.length})</div><div class="card">`;
-  if(DB.inventory.length){
-    html+=DB.inventory.map(i=>`<div class="li" onclick="openSheet('invedit','${i.id}')">
-      <div class="dot">${i.emoji||'🧪'}</div>
-      <div class="grow"><div class="t">${i.name}</div><div class="d">${i.mg} mg · ${i.bac} ml BAC · ${i.note||''}</div></div>
-      <div class="r"><span class="pill ${i.type==='GLP-1'?'':'gray'}">${i.type}</span></div></div>`).join('');
-  } else html+=`<div class="empty">No compounds yet.</div>`;
-  html+=`</div><button class="btn ghost" onclick="openSheet('invedit')">+ Add compound</button>`;
-  html+=`<div class="ttl">Recent doses</div><div class="card">`;
-  const recent=[...DB.doses].reverse().slice(0,8);
-  if(recent.length){
-    html+=recent.map(d=>{const inv=DB.inventory.find(i=>i.id===d.invId)||{};
-      return `<div class="li"><div class="dot">${inv.emoji||'💉'}</div>
-      <div class="grow"><div class="t">${d.name}</div><div class="d">${d.amount} ${d.unit} · ${d.site||'—'}</div></div>
-      <div class="r">${fmtDay(d.date)}<br>${fmtTime(d.date)}</div></div>`;}).join('');
-  } else html+=`<div class="empty">No doses logged yet.</div>`;
-  html+=`</div>`;
-  document.getElementById('p-inv').innerHTML=html;
-}
 
 /* FOOD */
 let CUR=[],offSeq=0,offTimer=null,foodViewDay=null;
@@ -546,7 +490,6 @@ function renderFood(){
   html+=`<div class="disc">${isToday?'Tap a food entry to edit or remove it. ':'Reviewing a past day (read-only). '}Search & barcode data from Open Food Facts.</div>`;
   document.getElementById('p-food').innerHTML=html;
 }
-function delFood(meal,idx){const m=getDayMeals(todayKey());m[meal].splice(idx,1);save();renderFood();}
 function addCustomFood(meal){const name=v('cf_name')||'Custom food';const s=parseFloat(v('cf_serv'))||1;
   const food={n:name,s:'1 serving',cal:Math.round(+v('cf_cal')||0),p:+v('cf_p')||0,c:+v('cf_c')||0,f:+v('cf_f')||0};
   const m=getDayMeals(todayKey());
@@ -776,58 +719,9 @@ function renderWork(){
   tick();
 }
 
-/* TOOLS (used inside Protocol's Peptide Tools segment) */
-let toolTab='calc';
-function calcUI(){
-  return `<div class="card"><div class="ttl" style="margin:0 0 12px">Reconstitution calculator</div>
-    <div class="field"><label>Compound strength in vial (mg)</label><input id="c_mg" type="number" inputmode="decimal" value="5" oninput="doCalc()"></div>
-    <div class="field"><label>Bacteriostatic water added (ml)</label><input id="c_bac" type="number" inputmode="decimal" value="2" oninput="doCalc()"></div>
-    <div class="two"><div class="field"><label>Desired dose</label><input id="c_dose" type="number" inputmode="decimal" value="250" oninput="doCalc()"></div>
-      <div class="field"><label>Unit</label><select id="c_unit" onchange="doCalc()"><option value="mcg">mcg</option><option value="mg">mg</option></select></div></div>
-    <div class="field"><label>Syringe</label><select id="c_syr" onchange="doCalc()"><option value="100">U-100 insulin (1 ml = 100 units)</option><option value="50">U-50 insulin (0.5 ml = 50 units)</option></select></div>
-    <div class="calcout" id="calcOut"></div></div>
-  <div class="disc">Math only — not a dosing recommendation. Verify independently and consult a professional.</div>`;
-}
-function doCalc(){const mg=parseFloat(v('c_mg')),bac=parseFloat(v('c_bac'));let dose=parseFloat(v('c_dose'));const unit=v('c_unit'),syr=parseFloat(v('c_syr'));
-  const o=document.getElementById('calcOut');if(!mg||!bac||!dose){o.innerHTML='<div class="muted">Enter values above</div>';return;}
-  const doseMg=unit==='mcg'?dose/1000:dose;const conc=mg/bac;const ml=doseMg/conc;const units=ml*syr;
-  o.innerHTML=`<div style="font-size:12px;color:var(--ink2);font-weight:700">DRAW TO</div><div class="big">${units.toFixed(1)} <span style="font-size:18px">units</span></div><div class="muted">${ml.toFixed(3)} ml · concentration ${conc.toFixed(2)} mg/ml</div>`;}
-const v=id=>document.getElementById(id)?document.getElementById(id).value:'';
-const SITES=[{id:'l-abdo',x:84,y:150,lbl:'Abd L'},{id:'r-abdo',x:116,y:150,lbl:'Abd R'},{id:'l-thigh',x:80,y:230,lbl:'Thigh L'},{id:'r-thigh',x:120,y:230,lbl:'Thigh R'},{id:'l-arm',x:52,y:120,lbl:'Arm L'},{id:'r-arm',x:148,y:120,lbl:'Arm R'},{id:'l-glute',x:84,y:300,lbl:'Glute L'},{id:'r-glute',x:116,y:300,lbl:'Glute R'}];
-function siteUI(){return `<div class="card"><div class="ttl" style="margin:0 0 8px">Injection site rotation</div>
-  <div class="muted" style="margin-bottom:10px">Tap a site to mark it used today. <span style="color:var(--mint)">Green</span> = used, <span style="color:var(--amber)">amber</span> = last 3 days.</div>
-  <svg class="body" viewBox="0 0 200 360"><ellipse cx="100" cy="40" rx="20" ry="23" fill="rgba(255,255,255,.05)" stroke="var(--line2)"/>
-    <path d="M70 70 Q100 60 130 70 L142 150 L120 175 L120 330 Q100 340 80 330 L80 175 L58 150 Z" fill="rgba(255,255,255,.04)" stroke="var(--line2)"/>
-    <path d="M70 75 L40 140 L52 150 L72 95 Z M130 75 L160 140 L148 150 L128 95 Z" fill="rgba(255,255,255,.04)" stroke="var(--line2)"/>
-    <g id="siteG"></g></svg></div>`;}
-function paintSites(){const g=document.getElementById('siteG');if(!g)return;const now=Date.now();
-  g.innerHTML=SITES.map(s=>{const last=DB.sites[s.id];let cls='site';if(last){const days=(now-last)/864e5;cls+=days<=3?' recent':' used';}
-    return `<g><circle class="${cls}" cx="${s.x}" cy="${s.y}" r="11" onclick="markSite('${s.id}')"/><text class="bl" x="${s.x}" y="${s.y+24}" text-anchor="middle">${s.lbl}</text></g>`;}).join('');}
-function markSite(id){DB.sites[id]=Date.now();save();paintSites();}
-const HL={'BPC-157':4,'Semaglutide':168,'Tirzepatide':120,'TB-500':2,'Ipamorelin':2,'CJC-1295':144,'Custom':24};
-function estUI(){const opts=Object.keys(HL).map(k=>`<option>${k}</option>`).join('');
-  return `<div class="card"><div class="ttl" style="margin:0 0 12px">Compound level estimator</div>
-    <div class="two"><div class="field"><label>Compound</label><select id="e_c" onchange="syncHL();drawDecay()">${opts}</select></div>
-      <div class="field"><label>Half-life (hrs)</label><input id="e_hl" type="number" value="4" oninput="drawDecay()"></div></div>
-    <div class="field"><label>Hours since last dose: <b id="e_hl_v" style="color:var(--mint)">0</b></label><input id="e_t" type="range" min="0" max="336" value="0" oninput="drawDecay()" style="padding:0"></div>
-    <canvas id="decay" width="320" height="140" style="width:100%;height:auto;background:var(--bg2);border-radius:14px;border:1px solid var(--line)"></canvas>
-    <div class="calcout" id="estOut" style="margin-top:12px"></div></div>
-  <div class="disc">Rough single-compartment estimate for education only — real pharmacokinetics vary by person.</div>`;}
-function syncHL(){const c=v('e_c');if(HL[c])document.getElementById('e_hl').value=HL[c];}
-function drawDecay(){const cv=document.getElementById('decay');if(!cv)return;const ctx=cv.getContext('2d');
-  const W=cv.width,H=cv.height,hl=parseFloat(v('e_hl'))||4,t=parseFloat(v('e_t'))||0,maxT=336;
-  document.getElementById('e_hl_v').textContent=t;ctx.clearRect(0,0,W,H);
-  ctx.beginPath();for(let i=0;i<=W;i++){const hr=i/W*maxT;const lvl=Math.pow(.5,hr/hl);const y=H-10-lvl*(H-20);if(i===0)ctx.moveTo(i,y);else ctx.lineTo(i,y);}
-  ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--mint').trim();ctx.lineWidth=2.5;ctx.stroke();
-  ctx.lineTo(W,H-10);ctx.lineTo(0,H-10);ctx.closePath();ctx.fillStyle='rgba(46,196,182,.12)';ctx.fill();
-  const mx=t/maxT*W,lvl=Math.pow(.5,t/hl),my=H-10-lvl*(H-20);ctx.beginPath();ctx.arc(mx,my,5,0,7);ctx.fillStyle='#fff';ctx.fill();
-  ctx.strokeStyle='rgba(255,255,255,.3)';ctx.beginPath();ctx.moveTo(mx,0);ctx.lineTo(mx,H);ctx.stroke();
-  document.getElementById('estOut').innerHTML=`<div style="font-size:12px;color:var(--ink2);font-weight:700">ESTIMATED REMAINING</div><div class="big">${(lvl*100).toFixed(1)}%</div><div class="muted">at ${t} hrs · half-life ${hl} hrs</div>`;}
-
 /* SHEETS */
 const sheet=document.getElementById('sheet'),scrim=document.getElementById('scrim'),sbody=document.getElementById('sheetBody');
 function openSheet(type,a,b){sbody.innerHTML=sheetHTML(type,a,b);scrim.classList.add('on');sheet.classList.add('on');
-  if(type==='log')setTimeout(()=>document.getElementById('lg_amt')&&document.getElementById('lg_amt').focus(),300);
   if(type==='food'){renderFoodResults('');setTimeout(()=>document.getElementById('foodSearch')&&document.getElementById('foodSearch').focus(),300);}
   if(type==='foodhistory')setTimeout(()=>renderHistResults(''),0);
   if(type==='editfood'){const m=getDayMeals(todayKey());const e=(m[a]||[])[b];if(e){window._editIdx=b;window._editEntry=e;window._editBase={cal:e.cal/e.q,p:e.p/e.q,c:e.c/e.q,f:e.f/e.q};}setTimeout(()=>calcEditServ(),0);}
@@ -843,8 +737,6 @@ function closeSheet(){scrim.classList.remove('on');sheet.classList.remove('on');
 function sheetHTML(type,a,b){
   if(type==='pick')return pickSheet();
   if(type==='settings')return settingsSheet();
-  if(type==='log')return logSheet();
-  if(type==='invedit')return invSheet(a);
   if(type==='weight')return weightSheet();
   if(type==='sleep')return sleepSheet();
   if(type==='food')return foodSheet(a);
@@ -865,11 +757,10 @@ function sheetHTML(type,a,b){
 function pickSheet(){
   return `<h2>Add to your day</h2><div class="muted" style="margin-bottom:14px">What would you like to log?</div>
   <div class="two" style="margin-bottom:10px">
-    <button class="card tap" style="text-align:center;padding:20px 8px" onclick="openSheet('log')"><div style="display:flex;justify-content:center">${ic('dose',28,'var(--mint)')}</div><div style="font-weight:700;margin-top:8px">Log dose</div></button>
     <button class="card tap" style="text-align:center;padding:20px 8px" onclick="openSheet('food','${defaultMeal()}')"><div style="display:flex;justify-content:center">${ic('food',28,'var(--mint)')}</div><div style="font-weight:700;margin-top:8px">Log food</div></button>
+    <button class="card tap" style="text-align:center;padding:20px 8px" onclick="openSheet('startworkout')"><div style="display:flex;justify-content:center">${ic('lift',28,'var(--mint)')}</div><div style="font-weight:700;margin-top:8px">Start workout</div></button>
   </div>
   <div class="two">
-    <button class="card tap" style="text-align:center;padding:20px 8px" onclick="openSheet('startworkout')"><div style="display:flex;justify-content:center">${ic('lift',28,'var(--mint)')}</div><div style="font-weight:700;margin-top:8px">Start workout</div></button>
     <button class="card tap" style="text-align:center;padding:20px 8px" onclick="openSheet('barcode','${defaultMeal()}')"><div style="display:flex;justify-content:center">${ic('barcode',28,'var(--mint)')}</div><div style="font-weight:700;margin-top:8px">Scan barcode</div></button>
   </div>
   <div class="chips" style="padding-top:12px">
@@ -878,33 +769,6 @@ function pickSheet(){
     <button class="chip" onclick="openSheet('sleep')" style="display:inline-flex;align-items:center;gap:5px">${ic('sleep',14,'var(--ink2)')} Sleep</button>
   </div>`;
 }
-function logSheet(){
-  const opts=DB.inventory.map(i=>`<option value="${i.id}">${i.emoji||''} ${i.name}</option>`).join('');
-  const sopts=SITES.map(s=>`<option>${s.lbl}</option>`).join('');
-  return `<h2>Log a dose</h2><div class="muted" style="margin-bottom:14px">Record what you took and when.</div>
-  <div class="field"><label>Compound</label><select id="lg_inv">${opts||'<option>Add inventory first</option>'}</select></div>
-  <div class="two"><div class="field"><label>Amount</label><input id="lg_amt" type="number" inputmode="decimal" placeholder="250"></div>
-    <div class="field"><label>Unit</label><select id="lg_unit"><option>mcg</option><option>mg</option><option>units</option><option>ml</option></select></div></div>
-  <div class="field"><label>Injection site</label><select id="lg_site"><option value="">— none —</option>${sopts}</select></div>
-  <button class="btn" onclick="saveDose()">Save dose</button>`;
-}
-function saveDose(){const inv=DB.inventory.find(i=>i.id===v('lg_inv'));if(!inv){closeSheet();return;}const amt=v('lg_amt');if(!amt)return;
-  DB.doses.push({id:uid(),invId:inv.id,name:inv.name,amount:amt,unit:v('lg_unit'),site:v('lg_site'),date:new Date().toISOString()});
-  const s=SITES.find(x=>x.lbl===v('lg_site'));if(s)DB.sites[s.id]=Date.now();save();closeSheet();go('home');toast('Dose logged');}
-function invSheet(id){const i=id?DB.inventory.find(x=>x.id===id):{};
-  return `<h2>${id?'Edit':'Add'} compound</h2>
-  <div class="field"><label>Name</label><input id="iv_name" value="${i.name||''}" placeholder="e.g. BPC-157"></div>
-  <div class="two"><div class="field"><label>Type</label><select id="iv_type"><option ${i.type==='Peptide'?'selected':''}>Peptide</option><option ${i.type==='GLP-1'?'selected':''}>GLP-1</option><option ${i.type==='Other'?'selected':''}>Other</option></select></div>
-    <div class="field"><label>Emoji</label><input id="iv_emoji" value="${i.emoji||'🧪'}" maxlength="2"></div></div>
-  <div class="two"><div class="field"><label>Vial (mg)</label><input id="iv_mg" type="number" value="${i.mg||5}"></div>
-    <div class="field"><label>BAC water (ml)</label><input id="iv_bac" type="number" value="${i.bac||2}"></div></div>
-  <div class="field"><label>Note</label><input id="iv_note" value="${i.note||''}" placeholder="optional"></div>
-  <button class="btn" onclick="saveInv('${id||''}')">Save</button>
-  ${id?`<button class="btn rose" style="margin-top:10px" onclick="delInv('${id}')">Delete compound</button>`:''}`;}
-function saveInv(id){const o={name:v('iv_name')||'Untitled',type:v('iv_type'),emoji:v('iv_emoji')||'🧪',mg:parseFloat(v('iv_mg'))||0,bac:parseFloat(v('iv_bac'))||0,note:v('iv_note')};
-  if(id){const idx=DB.inventory.findIndex(x=>x.id===id);DB.inventory[idx]={...DB.inventory[idx],...o};}else DB.inventory.push({id:uid(),...o});
-  save();closeSheet();renderInv();}
-function delInv(id){DB.inventory=DB.inventory.filter(x=>x.id!==id);save();closeSheet();renderInv();}
 function weightSheet(){return `<h2>Log weight</h2><div class="field" style="margin-top:12px"><label>Weight (${wUnit()})</label><input id="wt_v" type="number" inputmode="decimal" autofocus></div><button class="btn" onclick="saveWeight()">Save</button>`;}
 function saveWeight(){let val=parseFloat(v('wt_v'));if(!val)return;const kg=uImperial()?lbToKg(val):val;const i=DB.weights.findIndex(w=>w.date===todayKey());const e={date:todayKey(),kg:Math.round(kg*100)/100};
   if(i>=0)DB.weights[i]=e;else DB.weights.push(e);save();closeSheet();go('body');toast('Weight saved');}
@@ -1230,11 +1094,10 @@ function addSetSheet(exIdx){const ex=DB.activeWorkout.exercises[exIdx];const isT
     <div class="field"><label>Duration (s) — or use stopwatch above</label><input id="as_reps" type="number" inputmode="numeric" value="${last.duration||30}"></div>`
     :`<div class="field"><label>Reps</label><input id="as_reps" type="number" inputmode="numeric" value="${last.reps||8}"></div>`;
   return `<h2>Add set — ${ex.name}</h2>
-  <div class="three" style="margin-top:12px">
-    ${firstField}
-    ${isTime?'':`<div class="field"><label>Weight (${wUnit()})</label><input id="as_weight" type="number" inputmode="decimal" value="${last.weight||0}"></div>`}
-    <div class="field"><label>Rest (s)</label><input id="as_rest" type="number" inputmode="numeric" value="${last.rest||90}"></div>
-  </div>
+  ${isTime
+    ?`<div style="margin-top:12px">${firstField}<div class="field"><label>Rest (s)</label><input id="as_rest" type="number" inputmode="numeric" value="${last.rest||90}"></div></div>`
+    :`<div class="three" style="margin-top:12px">${firstField}<div class="field"><label>Weight (${wUnit()})</label><input id="as_weight" type="number" inputmode="decimal" value="${last.weight||0}"></div><div class="field"><label>Rest (s)</label><input id="as_rest" type="number" inputmode="numeric" value="${last.rest||90}"></div></div>`
+  }
   <label style="display:flex;align-items:center;gap:8px;margin:4px 2px 14px"><input type="checkbox" id="as_timer" checked style="width:auto"> Start rest timer after adding</label>
   <button class="btn" onclick="saveSet(${exIdx})">Add set</button>`;}
 function exOptionsSheet(ei){const ex=DB.activeWorkout.exercises[ei];const isTime=ex.type==='time';
@@ -1273,8 +1136,8 @@ function delWorkout(idx){if(confirm('Delete this workout?')){DB.workouts.splice(
 function settingsSheet(){
   const themes=[['mint','#2EC4B6'],['ocean','#5db7f0'],['violet','#b388f0'],['sun','#f0b75e']];
   const bi=(name,got)=>ic(name,26,got?'var(--mint)':'var(--ink3)');
-  const s7=streak()>=7,hydOk=Object.values(DB.water).some(x=>x>=waterGoal),hasW=DB.weights.length>0,has10d=DB.doses.length>=10,hasMeal=Object.values(DB.meals).some(d=>Object.values(d).some(a=>a.length)),hasWk=DB.workouts.length>0;
-  const badges=[[bi('fire',s7),'7-day streak',s7],[bi('water',hydOk),'Hydration',hydOk],[bi('trend',hasW),'First weigh-in',hasW],[bi('dose',has10d),'10 doses',has10d],[bi('food',hasMeal),'Logged a meal',hasMeal],[bi('lift',hasWk),'First workout',hasWk]];
+  const s7=streak()>=7,hydOk=Object.values(DB.water).some(x=>x>=waterGoal),hasW=DB.weights.length>0,hasMeal=Object.values(DB.meals).some(d=>Object.values(d).some(a=>a.length)),hasWk=DB.workouts.length>0;
+  const badges=[[bi('fire',s7),'7-day streak',s7],[bi('water',hydOk),'Hydration',hydOk],[bi('trend',hasW),'First weigh-in',hasW],[bi('food',hasMeal),'Logged a meal',hasMeal],[bi('lift',hasWk),'First workout',hasWk]];
   return `<h2>Settings</h2>
   <div class="field" style="margin-top:14px"><label>Your name</label><input id="set_name" value="${DB.profile.name}" placeholder="Name" oninput="DB.profile.name=this.value;save()"></div>
   <div class="field"><label>Units</label><select onchange="DB.units=this.value;save();toast('Units: '+this.value);renderFood()"><option value="imperial" ${uImperial()?'selected':''}>Imperial (lb, ft/in)</option><option value="metric" ${!uImperial()?'selected':''}>Metric (kg, cm)</option></select></div>
