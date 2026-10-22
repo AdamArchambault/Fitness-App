@@ -1232,7 +1232,7 @@ function addSetSheet(exIdx){const ex=DB.activeWorkout.exercises[exIdx];const isT
   return `<h2>Add set — ${ex.name}</h2>
   <div class="three" style="margin-top:12px">
     ${firstField}
-    <div class="field"><label>Weight (${wUnit()})</label><input id="as_weight" type="number" inputmode="decimal" value="${last.weight||0}"></div>
+    ${isTime?'':`<div class="field"><label>Weight (${wUnit()})</label><input id="as_weight" type="number" inputmode="decimal" value="${last.weight||0}"></div>`}
     <div class="field"><label>Rest (s)</label><input id="as_rest" type="number" inputmode="numeric" value="${last.rest||90}"></div>
   </div>
   <label style="display:flex;align-items:center;gap:8px;margin:4px 2px 14px"><input type="checkbox" id="as_timer" checked style="width:auto"> Start rest timer after adding</label>
