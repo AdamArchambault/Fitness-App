@@ -273,6 +273,7 @@ const fmtDay=d=>new Date(d).toLocaleDateString([],{month:'short',day:'numeric'})
 const uid=()=>Math.random().toString(36).slice(2,9);
 const pad=n=>String(n).padStart(2,'0');
 function fmtDur(ms){let s=Math.max(0,Math.floor(ms/1000));const h=Math.floor(s/3600);s%=3600;const m=Math.floor(s/60);s%=60;return h>0?`${h}:${pad(m)}:${pad(s)}`:`${m}:${pad(s)}`;}
+function fmtSw(ms){const t=Math.max(0,ms);let s=Math.floor(t/1000);const cs=Math.floor((t%1000)/10);const h=Math.floor(s/3600);s%=3600;const m=Math.floor(s/60);s%=60;const base=h>0?`${h}:${pad(m)}:${pad(s)}`:`${m}:${pad(s)}`;return base+'.'+pad(cs);}
 function ic(n,sz,c){const z=sz||22;const P={
   dose:'<path d="M9 21l-4-4 10-10 4 4-10 10zM13 5l6 6M16 2l2 2"/>',
   food:'<path d="M6 3v8a3 3 0 006 0V3M9 3v18M16 3c-1.5 0-2 3-2 6s.5 4 2 4v8"/>',
@@ -641,9 +642,9 @@ function delSet(exIdx,setIdx){DB.activeWorkout.exercises[exIdx].sets.splice(setI
 function delExercise(exIdx){DB.activeWorkout.exercises.splice(exIdx,1);save();renderWork();}
 function pairSuperset(ei1,ei2){const exs=DB.activeWorkout.exercises;const maxG=Math.max(0,...exs.map(e=>e.group||0));const g=exs[ei1].group||exs[ei2].group||maxG+1;exs[ei1].group=g;exs[ei2].group=g;save();closeSheet();renderWork();}
 function removeFromSuperset(ei){DB.activeWorkout.exercises[ei].group=null;save();closeSheet();renderWork();}
-function swTick(){if(!swActive)return;const el=document.getElementById('sw_display');if(el)el.textContent=fmtDur(swAcc+(Date.now()-swT0));swRaf=requestAnimationFrame(swTick);}
+function swTick(){if(!swActive)return;const el=document.getElementById('sw_display');if(el)el.textContent=fmtSw(swAcc+(Date.now()-swT0));swRaf=requestAnimationFrame(swTick);}
 function swToggle(){const btn=document.getElementById('sw_btn');if(swActive){swAcc+=Date.now()-swT0;swActive=false;cancelAnimationFrame(swRaf);const secs=Math.round(swAcc/1000);const dur=document.getElementById('as_reps');if(dur)dur.value=secs;if(btn)btn.textContent='Start';}else{swT0=Date.now();swActive=true;if(btn)btn.textContent='Stop';swTick();}}
-function swReset(){swActive=false;swAcc=0;cancelAnimationFrame(swRaf);const el=document.getElementById('sw_display');if(el)el.textContent='0:00';const dur=document.getElementById('as_reps');if(dur)dur.value=0;const btn=document.getElementById('sw_btn');if(btn)btn.textContent='Start';}
+function swReset(){swActive=false;swAcc=0;cancelAnimationFrame(swRaf);const el=document.getElementById('sw_display');if(el)el.textContent='0:00.00';const dur=document.getElementById('as_reps');if(dur)dur.value=0;const btn=document.getElementById('sw_btn');if(btn)btn.textContent='Start';}
 function finishWorkout(){const aw=DB.activeWorkout;if(!aw)return;
   aw.durationSec=Math.round((Date.now()-aw.start)/1000);aw.date=new Date().toISOString();
   DB.workouts.push(aw);DB.activeWorkout=null;restEnd=null;skipRest();save();renderWork();toast('Workout saved 💪');}
@@ -1219,11 +1220,11 @@ function addExSheet(){
 function filterExList(q){const box=document.getElementById('exList');if(!box)return;q=(q||'').toLowerCase().trim();const m=q?LIFTS.filter(l=>l.toLowerCase().includes(q)):['Bench Press','Back Squat','Deadlift','Overhead Press','Pull-up','Barbell Row','Lat Pulldown','Romanian Deadlift'];box.innerHTML=m.map(l=>`<button class="chip" onclick="addExercise('${l}')">${l}</button>`).join('');}
 function addSetSheet(exIdx){const ex=DB.activeWorkout.exercises[exIdx];const isTime=ex.type==='time';const last=ex.sets[ex.sets.length-1]||{reps:8,duration:30,weight:0,rest:90};
   const firstField=isTime
-    ?`<div style="text-align:center;padding:8px 0 4px">
-      <div id="sw_display" style="font-size:54px;font-weight:850;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--ink)">0:00</div>
-      <div style="display:flex;gap:8px;justify-content:center;margin:8px 0 4px">
-        <button id="sw_btn" class="btn ghost sm" style="width:auto;padding:8px 28px" onclick="swToggle()">Start</button>
-        <button class="btn ghost sm" style="width:auto;padding:8px 16px" onclick="swReset()">Reset</button>
+    ?`<div style="padding:8px 0 4px">
+      <div id="sw_display" style="display:block;width:100%;font-size:clamp(44px,11vw,72px);font-weight:850;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--ink);text-align:center;line-height:1.05">0:00.00</div>
+      <div style="display:flex;gap:8px;justify-content:center;margin:10px 0 4px">
+        <button id="sw_btn" class="btn ghost sm" style="flex:1;padding:10px 0" onclick="swToggle()">Start</button>
+        <button class="btn ghost sm" style="flex:1;padding:10px 0" onclick="swReset()">Reset</button>
       </div>
     </div>
     <div class="field"><label>Duration (s) — or use stopwatch above</label><input id="as_reps" type="number" inputmode="numeric" value="${last.duration||30}"></div>`
