@@ -1230,11 +1230,10 @@ function addSetSheet(exIdx){const ex=DB.activeWorkout.exercises[exIdx];const isT
     <div class="field"><label>Duration (s) — or use stopwatch above</label><input id="as_reps" type="number" inputmode="numeric" value="${last.duration||30}"></div>`
     :`<div class="field"><label>Reps</label><input id="as_reps" type="number" inputmode="numeric" value="${last.reps||8}"></div>`;
   return `<h2>Add set — ${ex.name}</h2>
-  <div class="three" style="margin-top:12px">
-    ${firstField}
-    ${isTime?'':`<div class="field"><label>Weight (${wUnit()})</label><input id="as_weight" type="number" inputmode="decimal" value="${last.weight||0}"></div>`}
-    <div class="field"><label>Rest (s)</label><input id="as_rest" type="number" inputmode="numeric" value="${last.rest||90}"></div>
-  </div>
+  ${isTime
+    ?`<div style="margin-top:12px">${firstField}<div class="field"><label>Rest (s)</label><input id="as_rest" type="number" inputmode="numeric" value="${last.rest||90}"></div></div>`
+    :`<div class="three" style="margin-top:12px">${firstField}<div class="field"><label>Weight (${wUnit()})</label><input id="as_weight" type="number" inputmode="decimal" value="${last.weight||0}"></div><div class="field"><label>Rest (s)</label><input id="as_rest" type="number" inputmode="numeric" value="${last.rest||90}"></div></div>`
+  }
   <label style="display:flex;align-items:center;gap:8px;margin:4px 2px 14px"><input type="checkbox" id="as_timer" checked style="width:auto"> Start rest timer after adding</label>
   <button class="btn" onclick="saveSet(${exIdx})">Add set</button>`;}
 function exOptionsSheet(ei){const ex=DB.activeWorkout.exercises[ei];const isTime=ex.type==='time';
