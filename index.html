@@ -189,6 +189,8 @@
   .setrow .sn{width:46px;color:var(--ink3);font-weight:700;font-size:12px;}
   .setrow .x{margin-left:auto;color:var(--ink3);font-size:18px;background:none;border:0;}
   .addset{background:transparent;border:0;color:var(--mint);font-weight:700;font-size:13.5px;padding:9px 2px;}
+  .drag-handle{background:none;border:0;color:var(--ink3);font-size:20px;padding:4px 10px 4px 0;cursor:grab;touch-action:none;line-height:1;flex:none;}
+  .ex-card.drag-over{outline:2px solid var(--mint);outline-offset:2px;}
   .prevex{font-size:11.5px;color:var(--ink3);padding:3px 2px 8px;font-weight:600;line-height:1.4;}
   .prevex b{color:var(--ink2);}
   .extimer{font-size:38px;font-weight:850;letter-spacing:-.02em;font-variant-numeric:tabular-nums;text-align:center;padding:10px 0 4px;}
@@ -645,6 +647,46 @@ function removeFromSuperset(ei){DB.activeWorkout.exercises[ei].group=null;save()
 function swTick(){if(!swActive)return;const el=document.getElementById('sw_display');if(el)el.textContent=fmtSw(swAcc+(Date.now()-swT0));swRaf=requestAnimationFrame(swTick);}
 function swToggle(){const btn=document.getElementById('sw_btn');if(swActive){swAcc+=Date.now()-swT0;swActive=false;cancelAnimationFrame(swRaf);const secs=Math.round(swAcc/1000);const dur=document.getElementById('as_reps');if(dur)dur.value=secs;if(btn)btn.textContent='Start';}else{swT0=Date.now();swActive=true;if(btn)btn.textContent='Stop';swTick();}}
 function swReset(){swActive=false;swAcc=0;cancelAnimationFrame(swRaf);const el=document.getElementById('sw_display');if(el)el.textContent='0:00.00';const dur=document.getElementById('as_reps');if(dur)dur.value=0;const btn=document.getElementById('sw_btn');if(btn)btn.textContent='Start';}
+let _dg=null;
+function exDragStart(e,ei){
+  if(!DB.activeWorkout)return;
+  e.preventDefault();
+  const card=e.currentTarget.closest('.ex-card');if(!card)return;
+  const rect=card.getBoundingClientRect(),t=e.touches[0];
+  const ghost=card.cloneNode(true);
+  ghost.style.cssText=`position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;z-index:999;pointer-events:none;opacity:.9;box-shadow:0 16px 40px rgba(0,0,0,.5);transform:scale(1.02);border-radius:var(--r);transition:none;`;
+  document.body.appendChild(ghost);
+  card.style.opacity='.2';
+  _dg={ei,card,ghost,oy:t.clientY-rect.top,target:null};
+  document.addEventListener('touchmove',exDragMove,{passive:false});
+  document.addEventListener('touchend',exDragEnd,{once:true});
+  document.addEventListener('touchcancel',exDragEnd,{once:true});
+}
+function exDragMove(e){
+  if(!_dg)return;e.preventDefault();
+  const t=e.touches[0];
+  _dg.ghost.style.top=(t.clientY-_dg.oy)+'px';
+  document.querySelectorAll('.ex-card').forEach(c=>c.classList.remove('drag-over'));
+  _dg.target=null;
+  for(const c of document.querySelectorAll('.ex-card')){
+    if(c===_dg.card)continue;
+    const r=c.getBoundingClientRect();
+    if(t.clientY>=r.top&&t.clientY<=r.bottom){c.classList.add('drag-over');_dg.target=parseInt(c.dataset.ei);break;}
+  }
+}
+function exDragEnd(){
+  document.removeEventListener('touchmove',exDragMove);
+  if(!_dg)return;
+  const{ei,card,ghost,target}=_dg;_dg=null;
+  ghost.remove();card.style.opacity='';
+  document.querySelectorAll('.ex-card').forEach(c=>c.classList.remove('drag-over'));
+  if(target!=null&&target!==ei){
+    const exs=DB.activeWorkout.exercises;
+    const[moved]=exs.splice(ei,1);
+    exs.splice(target>ei?target-1:target,0,moved);
+    save();renderWork();
+  }
+}
 function finishWorkout(){const aw=DB.activeWorkout;if(!aw)return;
   aw.durationSec=Math.round((Date.now()-aw.start)/1000);aw.date=new Date().toISOString();
   DB.workouts.push(aw);DB.activeWorkout=null;restEnd=null;skipRest();save();renderWork();toast('Workout saved 💪');}
@@ -679,9 +721,10 @@ function renderWork(){
       const ssFirst=inSS&&!seenSSGroups.has(ex.group);
       if(inSS)seenSSGroups.add(ex.group);
       if(ssFirst)html+=`<div style="font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--amber);padding:4px 4px 2px;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="16" r="3"/><path d="M8 11v2a5 5 0 005 5h0M16 13v-2a5 5 0 00-5-5h0"/></svg>SUPERSET</div>`;
-      html+=`<div class="card" style="padding:10px 16px 4px${inSS?';border-left:3px solid var(--amber)':''}">
+      html+=`<div class="card ex-card" data-ei="${ei}" style="padding:10px 16px 4px${inSS?';border-left:3px solid var(--amber)':''}">
 
         <div class="exhead">
+          <button class="drag-handle" ontouchstart="exDragStart(event,${ei})">⠿</button>
           <span class="n">${ex.name}</span>
           <div style="display:flex;align-items:center;gap:6px">
             <span class="extypebadge" style="color:${isTime?'var(--mint)':'var(--ink3)'};border-color:${isTime?'rgba(46,196,182,.4)':'var(--line2)'};display:inline-flex;align-items:center;gap:4px">${isTime?tIco+'Time':rIco+'Reps'}</span>
