@@ -635,7 +635,7 @@ function getWorkoutTypeExercises(wkName){const n=(wkName||'').toLowerCase();let 
 
 function startWorkout(name){DB.activeWorkout={start:Date.now(),name:name||('Workout '+(DB.workouts.length+1)),exercises:[]};save();startWkTimer();closeSheet();go('work');}
 function setWkName(val){if(DB.activeWorkout){DB.activeWorkout.name=val;save();}}
-function addExercise(name){if(!DB.activeWorkout)return;const n=(name||'').trim();if(!n)return;DB.activeWorkout.exercises.push({name:n,type:'reps',sets:[],group:null});activeExIdx=DB.activeWorkout.exercises.length-1;save();closeSheet();renderWork();}
+function addExercise(name){if(!DB.activeWorkout)return;const n=(name||'').trim();if(!n)return;const prevEx=getPrevExercise(n);const type=prevEx?prevEx.exercise.type:'reps';DB.activeWorkout.exercises.push({name:n,type,sets:[],group:null});activeExIdx=DB.activeWorkout.exercises.length-1;save();closeSheet();renderWork();}
 function saveSet(exIdx){const ex=DB.activeWorkout.exercises[exIdx];const val=+v('as_reps')||0,weight=+v('as_weight')||0,rest=+v('as_rest')||0;
   const isTime=ex.type==='time';ex.sets.push(isTime?{duration:val,weight,rest}:{reps:val,weight,rest});activeExIdx=exIdx;save();const t=document.getElementById('as_timer');const startT=t?t.checked:true;closeSheet();renderWork();if(startT&&rest>0)startRest(rest);}
 function saveExName(ei){const name=(document.getElementById('ex_rename')||{}).value||'';if(name.trim())DB.activeWorkout.exercises[ei].name=name.trim();save();closeSheet();renderWork();}
