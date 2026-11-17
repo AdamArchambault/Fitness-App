@@ -1029,18 +1029,31 @@ function foodSheet(meal){const isDraft=meal==='_draft';
   const mealSel=isDraft
     ?`<input type="hidden" id="foodMeal" value="_draft"><div class="muted" style="margin-bottom:10px">Pick a food to add to your meal template.</div>`
     :`<div class="field" style="margin-top:10px"><label>Meal</label><select id="foodMeal" onchange="renderFoodResults(document.getElementById('foodSearch').value)">${MEAL_KEYS.map(k=>`<option value="${k}" ${k===meal?'selected':''}>${MEAL_LBL[k]}</option>`).join('')}</select></div>`;
+  const rec=getRecentFoods();CUR=rec;
+  const initHTML=rec.length?`<div class="ttl" style="margin:4px 4px 8px;font-size:11px">RECENT</div>`+rec.map((o,i)=>foodRow(o,i)).join(''):'<div class="empty">Search foods above to get started.</div>';
   return `<h2>Add food${isDraft?' to template':''}</h2>${mealSel}
   <div class="field"><input id="foodSearch" placeholder="🔍 Search foods…" oninput="renderFoodResults(this.value)"></div>
-  <div id="foodResults" style="max-height:46vh;overflow:auto"></div>
+  <div id="foodResults" style="max-height:46vh;overflow:auto">${initHTML}</div>
   <button class="btn ghost" style="margin-top:10px" onclick="openSheet('customfood',document.getElementById('foodMeal').value)">+ Custom food / quick add</button>`;}
 function localFoods(){return FOODS.concat(DB.customFoods||[]);}
+function getRecentFoods(limit=20){
+  const seen=new Set(),result=[];
+  const lf=localFoods();
+  const days=Object.keys(DB.meals||{}).sort().reverse().slice(0,21);
+  for(const day of days){const m=DB.meals[day]||{};
+    for(const slot of MEAL_KEYS){for(const entry of ([...(m[slot]||[])]).reverse()){
+      const key=(entry.name||'').toLowerCase().trim();if(!key||seen.has(key))continue;seen.add(key);
+      const local=lf.find(f=>f.n.toLowerCase()===key);
+      result.push(local||{n:entry.name,s:entry.serv||'1 serving',cal:entry.cal||0,p:entry.p||0,c:entry.c||0,f:entry.f||0});
+      if(result.length>=limit)return result;}}}return result;}
 function foodRow(o,i){return `<div class="foodrow"><div class="grow" onclick="openSheet('fooditem',${i},document.getElementById('foodMeal').value)">
       <div class="t">${o.n}${o.src==='off'?' <span style="color:var(--ink3);font-size:11px;font-weight:600">· OFF</span>':''}</div><div class="d">${o.s} · ${o.p}p ${o.c}c ${o.f}f</div></div>
     <div class="kc">${o.cal}</div><button class="add" onclick="openSheet('fooditem',${i},document.getElementById('foodMeal').value)">+</button></div>`;}
 function renderFoodResults(q){const box=document.getElementById('foodResults');if(!box)return;q=(q||'').toLowerCase().trim();
-  CUR=localFoods().filter(o=>!q||o.n.toLowerCase().includes(q)).slice(0,40);
   const seq=++offSeq;if(offTimer)clearTimeout(offTimer);
-  if(q.length<2){box.innerHTML=CUR.length?CUR.map((o,i)=>foodRow(o,i)).join(''):'<div class="empty">Type at least 2 letters to search the food database…</div>';return;}
+  if(q.length<2){const rec=getRecentFoods();CUR=rec;
+    box.innerHTML=rec.length?`<div class="ttl" style="margin:4px 4px 8px;font-size:11px">RECENT</div>`+rec.map((o,i)=>foodRow(o,i)).join(''):'<div class="empty">Search foods above to get started.</div>';return;}
+  CUR=localFoods().filter(o=>o.n.toLowerCase().includes(q)).slice(0,40);
   box.innerHTML=(CUR.length?CUR.map((o,i)=>foodRow(o,i)).join(''):'')+'<div class="empty" id="offLoad">Searching database…</div>';
   offTimer=setTimeout(()=>searchOFF(q,seq),300);}
 async function searchOFF(q,seq){
