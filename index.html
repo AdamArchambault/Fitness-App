@@ -1370,10 +1370,11 @@ function addExSheet(){
   <button class="btn" style="margin-top:12px" onclick="addExercise(document.getElementById('ex_name').value)">Add</button>`;}
 function fuzzyExScore(name,q){const n=name.toLowerCase();if(n.includes(q))return 100;const qw=q.split(/\s+/),nw=n.split(/\s+/);if(qw.every(w=>nw.some(nwi=>nwi.startsWith(w))))return 80;if(qw.every(w=>n.includes(w)))return 60;let si=0;for(const ch of q){si=n.indexOf(ch,si);if(si<0)return 0;si++;}return 30;}
 function filterExList(q){const box=document.getElementById('exList');if(!box)return;q=(q||'').toLowerCase().trim();
-  if(!q){box.innerHTML=['Bench Press','Back Squat','Deadlift','Overhead Press','Pull-up','Barbell Row','Lat Pulldown','Romanian Deadlift'].map(l=>`<button class="chip" onclick="addExercise('${l.replace(/'/g,"\\'")}'">${l}</button>`).join('');return;}
+  const chip=l=>`<button class="chip" onclick="addExercise('${l.replace(/'/g,"\\'")}')">${l}</button>`;
+  if(!q){box.innerHTML=['Bench Press','Back Squat','Deadlift','Overhead Press','Pull-up','Barbell Row','Lat Pulldown','Romanian Deadlift'].map(chip).join('');return;}
   const pool=[...new Set([...getRecentExercises(20),...LIFTS])];
   const scored=pool.map(l=>({l,s:fuzzyExScore(l,q)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,20);
-  box.innerHTML=scored.length?scored.map(({l})=>`<button class="chip" onclick="addExercise('${l.replace(/'/g,"\\'")}'">${l}</button>`).join(''):`<button class="chip" onclick="addExercise(document.getElementById('ex_name').value)">"${document.getElementById('ex_name')?.value||q}" (custom)</button>`;}
+  box.innerHTML=scored.length?scored.map(({l})=>chip(l)).join(''):`<button class="chip" onclick="addExercise(document.getElementById('ex_name').value)">"${document.getElementById('ex_name')?.value||q}" (custom)</button>`;}
 function addSetSheet(exIdx){const ex=DB.activeWorkout.exercises[exIdx];const isTime=ex.type==='time';const last=ex.sets[ex.sets.length-1]||{reps:8,duration:30,weight:0,rest:90};
   let defaultRest=last.rest||90;
   if(ex.group!=null){const grp=DB.activeWorkout.exercises.map((e,i)=>({e,i})).filter(({e})=>e.group===ex.group);const pos=grp.findIndex(({i})=>i===exIdx);defaultRest=pos===grp.length-1?90:0;}
