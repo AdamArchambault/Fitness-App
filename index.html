@@ -1371,7 +1371,12 @@ function addExSheet(){
   <label id="exListLabel" style="margin-bottom:8px">${label}</label>
   <div id="exList" class="chips" style="flex-wrap:wrap;overflow-y:auto;max-height:42dvh;max-height:42vh;padding-bottom:4px">${initChips}</div>
   <button class="btn" style="margin-top:12px" onclick="addExercise(document.getElementById('ex_name').value)">Add</button>`;}
-function fuzzyExScore(name,q){const n=name.toLowerCase();if(n.includes(q))return 100;const qw=q.split(/\s+/),nw=n.split(/\s+/);if(qw.every(w=>nw.some(nwi=>nwi.startsWith(w))))return 80;if(qw.every(w=>n.includes(w)))return 60;let si=0;for(const ch of q){si=n.indexOf(ch,si);if(si<0)return 0;si++;}return 30;}
+const EX_ABBR={db:'dumbbell',bb:'barbell',kb:'kettlebell',ohp:'overhead press',rdl:'romanian deadlift',bp:'bench press',cgbp:'close grip bench press',sl:'single-leg',bw:'bodyweight',inc:'incline',dec:'decline',ez:'ez bar',lat:'lateral',tri:'tricep',bi:'bicep',ham:'hamstring',quad:'quadricep',glute:'glute',cg:'close grip',wg:'wide grip',ng:'narrow grip'};
+function expandExQ(q){return q.split(/\s+/).map(w=>EX_ABBR[w]||w).join(' ');}
+function fuzzyExScore(name,q){
+  const n=name.toLowerCase();const eq=expandExQ(q);
+  const score=s=>{if(n.includes(s))return 100;const qw=s.split(/\s+/),nw=n.split(/\s+/);if(qw.every(w=>nw.some(nwi=>nwi.startsWith(w))))return 80;if(qw.every(w=>n.includes(w)))return 60;let si=0;for(const ch of s){si=n.indexOf(ch,si);if(si<0)return 0;si++;}return 30;};
+  return Math.max(score(q),eq!==q?score(eq):0);}
 function filterExList(q){const box=document.getElementById('exList');const lbl=document.getElementById('exListLabel');if(!box)return;q=(q||'').toLowerCase().trim();
   const chip=l=>`<button class="chip" onclick="addExercise('${l.replace(/'/g,"\\'")}')">${l}</button>`;
   if(!q){const pool=[...new Set([...getWorkoutTypeExercises(DB.activeWorkout?.name||''),...getRecentExercises(20),...LIFTS])];box.innerHTML=pool.slice(0,24).map(chip).join('');if(lbl)lbl.textContent='Recently used & common exercises';return;}
