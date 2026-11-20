@@ -1365,10 +1365,12 @@ function addExSheet(){
   const initChips=pool.slice(0,24).map(chip).join('');
   const label=typeEx.length?`From your ${wkType} day &amp; recent exercises`:recent.length?'Recently used &amp; common exercises':'Common exercises';
   return `<h2>Add exercise</h2>
-  <div class="field" style="margin-top:10px"><input id="ex_name" placeholder="Search exercises…" oninput="filterExList(this.value)" onkeydown="if(event.key==='Enter')addExercise(this.value)" autocomplete="off"></div>
   <label id="exListLabel" style="margin-bottom:8px">${label}</label>
-  <div id="exList" class="chips" style="flex-wrap:wrap;overflow:visible">${initChips}</div>
-  <button class="btn" style="margin-top:12px" onclick="addExercise(document.getElementById('ex_name').value)">Add</button>`;}
+  <div id="exList" class="chips" style="flex-wrap:wrap;overflow:visible;padding-bottom:8px">${initChips}</div>
+  <div style="position:sticky;bottom:0;background:var(--bg);padding:10px 0 2px;border-top:1px solid var(--line);margin-top:8px">
+    <div class="field" style="margin-bottom:8px"><input id="ex_name" placeholder="Search exercises…" oninput="filterExList(this.value)" onkeydown="if(event.key==='Enter')addExercise(this.value)" autocomplete="off"></div>
+    <button class="btn" onclick="addExercise(document.getElementById('ex_name').value)">Add</button>
+  </div>`;}
 function fuzzyExScore(name,q){const n=name.toLowerCase();if(n.includes(q))return 100;const qw=q.split(/\s+/),nw=n.split(/\s+/);if(qw.every(w=>nw.some(nwi=>nwi.startsWith(w))))return 80;if(qw.every(w=>n.includes(w)))return 60;let si=0;for(const ch of q){si=n.indexOf(ch,si);if(si<0)return 0;si++;}return 30;}
 function filterExList(q){const box=document.getElementById('exList');const lbl=document.getElementById('exListLabel');if(!box)return;q=(q||'').toLowerCase().trim();
   const chip=l=>`<button class="chip" onclick="addExercise('${l.replace(/'/g,"\\'")}')">${l}</button>`;
