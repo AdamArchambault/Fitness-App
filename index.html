@@ -1382,8 +1382,9 @@ function filterExList(q){const box=document.getElementById('exList');const lbl=d
   if(!q){const pool=[...new Set([...getWorkoutTypeExercises(DB.activeWorkout?.name||''),...getRecentExercises(20),...LIFTS])];box.innerHTML=pool.slice(0,24).map(chip).join('');if(lbl)lbl.textContent='Recently used & common exercises';return;}
   if(lbl)lbl.textContent='Search results';
   const pool=[...new Set([...getRecentExercises(20),...LIFTS])];
-  const scored=pool.map(l=>({l,s:fuzzyExScore(l,q)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,20);
-  box.innerHTML=scored.length?scored.map(({l})=>chip(l)).join(''):`<button class="chip" onclick="addExercise(document.getElementById('ex_name').value)">"${document.getElementById('ex_name')?.value||q}" (custom)</button>`;}
+  const expanded=expandExQ(q);
+  const matches=pool.filter(l=>{const n=l.toLowerCase();return n.includes(q)||(expanded!==q&&n.includes(expanded));});
+  box.innerHTML=matches.length?matches.map(chip).join(''):`<button class="chip" onclick="addExercise(document.getElementById('ex_name').value)">"${document.getElementById('ex_name')?.value||q}" (add custom)</button>`;}
 function addSetSheet(exIdx){const ex=DB.activeWorkout.exercises[exIdx];const isTime=ex.type==='time';const last=ex.sets[ex.sets.length-1]||{reps:8,duration:30,weight:0,rest:90};
   let defaultRest=last.rest||90;
   if(ex.group!=null){const grp=DB.activeWorkout.exercises.map((e,i)=>({e,i})).filter(({e})=>e.group===ex.group);const pos=grp.findIndex(({i})=>i===exIdx);defaultRest=pos===grp.length-1?90:0;}
