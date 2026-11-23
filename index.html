@@ -513,6 +513,7 @@ function renderFood(){
       <button onclick="shiftDay(1)" ${canNext?'':'disabled'} style="background:transparent;border:0;color:${canNext?'var(--mint)':'var(--ink3)'};font-size:22px;font-weight:700;padding:2px 8px">›</button>
     </div>
     <button onclick="openSheet('goals')" style="background:transparent;border:0;color:var(--mint);font-weight:700;font-size:14px">Macros</button></div>`;
+  if(!isEditable&&Object.values(getDayMeals(day)).some(a=>a.length)){html+=`<div style="display:flex;justify-content:flex-end;margin:-2px 0 6px"><button onclick="copyDay('${day}')" style="background:none;border:1px solid var(--mint);border-radius:20px;color:var(--mint);font-size:12px;font-weight:700;padding:5px 12px">Copy entire day to today</button></div>`;}
   html+=`<div class="card">
     <div class="rowflex"><div class="ring" style="--p:${wp}"><i>${wp}%</i></div><div class="grow">
       <div class="t" style="font-weight:700;font-size:15px">Hydration</div>
@@ -540,10 +541,10 @@ function renderFood(){
   </div>`;}
   MEAL_KEYS.forEach(k=>{
     const items=getDayMeals(day)[k];
-    html+=`<div class="card" style="padding:6px 16px 4px"><div class="mealhead"><span class="name">${MEAL_LBL[k]}</span><span class="kc">${mealCal(day,k)} kcal</span></div>`;
+    html+=`<div class="card" style="padding:6px 16px 4px"><div class="mealhead"><span class="name">${MEAL_LBL[k]}</span><span style="display:flex;align-items:center;gap:8px"><span class="kc">${mealCal(day,k)} kcal</span>${!isEditable&&items.length?`<button onclick="copyMeal('${day}','${k}')" style="background:none;border:0;color:var(--mint);font-size:12px;font-weight:700;padding:2px 0">Copy meal</button>`:''}</span></div>`;
     items.forEach((e,idx)=>{html+=`<div class="foodrow" ${isEditable?`onclick="openSheet('editfood','${k}',${idx})"`:''}>
         <div class="grow"><div class="t">${e.name}</div><div class="d">${e.q}× ${e.serv} · ${e.p}p ${e.c}c ${e.f}f</div></div>
-        <div class="kc">${e.cal}</div></div>`;});
+        <div style="display:flex;align-items:center;gap:6px"><div class="kc">${e.cal}</div>${!isEditable?`<button onclick="copyFoodItem('${day}','${k}',${idx})" style="background:none;border:0;color:var(--mint);font-size:11px;font-weight:700;padding:2px 0;white-space:nowrap">+Today</button>`:''}</div></div>`;});
     if(isEditable)html+=`<button class="addfood" onclick="openSheet('food','${k}')">+ Add food</button>`;
     html+=`</div>`;
   });
@@ -551,6 +552,9 @@ function renderFood(){
   document.getElementById('p-food').innerHTML=html;
 }
 function delFood(meal,idx){const m=getDayMeals(foodViewDay||todayKey());m[meal].splice(idx,1);save();renderFood();}
+function copyFoodItem(srcDay,meal,idx){const src=getDayMeals(srcDay)[meal][idx];if(!src)return;const m=getDayMeals(todayKey());m[meal].push({...src});save();toast(`${src.name} added to today`);renderFood();}
+function copyMeal(srcDay,meal){const src=getDayMeals(srcDay)[meal];if(!src||!src.length)return;const m=getDayMeals(todayKey());src.forEach(e=>m[meal].push({...e}));save();toast(`${src.length} item${src.length>1?'s':''} added to today's ${MEAL_LBL[meal]}`);renderFood();}
+function copyDay(srcDay){const src=getDayMeals(srcDay);let count=0;const m=getDayMeals(todayKey());MEAL_KEYS.forEach(k=>{(src[k]||[]).forEach(e=>{m[k].push({...e});count++;});});save();toast(`${count} item${count>1?'s':''} copied to today`);renderFood();}
 function addCustomFood(meal){const name=v('cf_name')||'Custom food';const s=parseFloat(v('cf_serv'))||1;
   const food={n:name,s:'1 serving',cal:Math.round(+v('cf_cal')||0),p:+v('cf_p')||0,c:+v('cf_c')||0,f:+v('cf_f')||0};
   const entry={name:food.n,serv:food.s,q:s,cal:Math.round(food.cal*s),p:+(food.p*s).toFixed(1),c:+(food.c*s).toFixed(1),f:+(food.f*s).toFixed(1)};
